@@ -1,0 +1,1211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sheba Beans Export ERP</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+html,body{margin:0}body{font-size:14px}
+/* Layout concept: a sticky green-espresso header with the role switcher; below it a working area.
+   Dashboard = stat strip + shipment table with 10-segment stage ribbons.
+   Shipment File = master-detail (stage rail left, document cards right). */
+:root{
+  --bg:#F5EFE3; --surface:#FFFFFF; --surface-2:#FBF6EC; --fg:#2A1E14; --muted:#75664F; --line:#E3D6BE;
+  --head-bg:#23402B; --head-bg-2:#2B1B10; --head-fg:#FFFFFF; --head-muted:rgba(255,255,255,.62);
+  --btn-bg:#23402B; --btn-fg:#FFFFFF; --btn-hover:#3E6B49; --accent-ink:#23402B; --gold:#BE8F3E; --focus:#3E6B49;
+  --ok-ink:#23402B; --ok-bg:#E1EDE4; --warn-ink:#8A4B12; --warn-bg:#F8E8CF; --crit-ink:#9A3326; --crit-bg:#F6DFDA;
+  --neu-ink:#5A4A36; --neu-bg:#EFE8D8; --seg-done:#3E6B49; --seg-active:#BE8F3E; --seg-block:#A23B2E; --seg-todo:#E3D6BE;
+  --paper:#FFFFFF; --paper-ink:#1E1A14; --shadow:0 1px 2px rgba(43,27,16,.06);
+  --display:'Fraunces',Georgia,serif; --body:'Inter',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#15110C; --surface:#1F1912; --surface-2:#271F16; --fg:#F0E8DA; --muted:#AE9D85; --line:#3A3024;
+  --btn-bg:#3E6B49; --btn-hover:#4C7F58; --accent-ink:#9CCBA6; --gold:#D2A24C; --focus:#9CCBA6;
+  --ok-ink:#9CCBA6; --ok-bg:#1E3324; --warn-ink:#E3B15C; --warn-bg:#3A2A12; --crit-ink:#EE9A8B; --crit-bg:#3C201B;
+  --neu-ink:#CDBFA8; --neu-bg:#2D2519; --seg-done:#5C9468; --seg-active:#D2A24C; --seg-block:#D8624F; --seg-todo:#3A3024;
+  --shadow:none; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#15110C; --surface:#1F1912; --surface-2:#271F16; --fg:#F0E8DA; --muted:#AE9D85; --line:#3A3024;
+  --btn-bg:#3E6B49; --btn-hover:#4C7F58; --accent-ink:#9CCBA6; --gold:#D2A24C; --focus:#9CCBA6;
+  --ok-ink:#9CCBA6; --ok-bg:#1E3324; --warn-ink:#E3B15C; --warn-bg:#3A2A12; --crit-ink:#EE9A8B; --crit-bg:#3C201B;
+  --neu-ink:#CDBFA8; --neu-bg:#2D2519; --seg-done:#5C9468; --seg-active:#D2A24C; --seg-block:#D8624F; --seg-todo:#3A3024;
+  --shadow:none; color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--head-bg)}
+h1,h2,h3{font-family:var(--display);font-weight:600;text-wrap:balance;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+/* header */
+.hdr{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px)));
+  padding-inline:max(16px,env(safe-area-inset-left,0px));background:linear-gradient(100deg,var(--head-bg),var(--head-bg-2));color:var(--head-fg)}
+.hdr-in{max-width:1320px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;padding:10px 0}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand b{font-family:var(--display);font-size:19px;font-weight:700;display:block;line-height:1.1}
+.brand small{font-family:var(--mono);font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--head-muted)}
+.nav{display:flex;gap:4px;flex-wrap:wrap}
+.nav button{background:none;border:0;color:var(--head-muted);padding:8px 12px;border-radius:7px;font-weight:500}
+.nav button:hover{color:#fff;background:rgba(255,255,255,.08)}
+.nav button[aria-current="page"]{color:#fff;background:rgba(190,143,62,.22);box-shadow:inset 0 -2px 0 #BE8F3E}
+.hdr-r{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.hdr label{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--head-muted)}
+.hdr select{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:7px;padding:6px 8px}
+.hdr select option{color:#111}
+.link-btn{background:none;border:0;color:var(--head-muted);text-decoration:underline;font-size:12px;padding:4px}
+/* page */
+.wrap{max-width:1320px;margin:0 auto;padding-block:22px 64px}
+.page-h{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 20px;margin-bottom:18px}
+.page-h h1{font-size:26px}.page-h p{margin:2px 0 0;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);min-width:0}
+.card-h{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--line)}
+.card-h h2{font-size:16px}.card-b{padding:14px 16px}
+.grid{display:grid;gap:16px}
+.g-main{grid-template-columns:minmax(0,1fr) 320px;align-items:start}
+@media(max-width:1000px){.g-main{grid-template-columns:minmax(0,1fr)}}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow:hidden;margin-bottom:16px}
+.strip>div{padding:14px 16px;border-right:1px solid var(--line);min-width:0}
+.strip>div:last-child{border-right:0}
+.stat-l{font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.stat-v{font-family:var(--display);font-size:28px;font-weight:700;line-height:1.15;margin-top:3px}
+.stat-v.crit{color:var(--crit-ink)}
+.wait{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.wait div{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.wait b{font-family:var(--display);font-size:20px}.wait span{font-size:12.5px;color:var(--muted)}
+/* tables */
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr.click{cursor:pointer}tbody tr.click:hover td{background:var(--surface-2)}
+/* pills */
+.pill{display:inline-block;font-family:var(--mono);font-size:10.5px;padding:2px 8px;border-radius:20px;white-space:nowrap;background:var(--neu-bg);color:var(--neu-ink)}
+.pill.ok{background:var(--ok-bg);color:var(--ok-ink)}.pill.warn{background:var(--warn-bg);color:var(--warn-ink)}.pill.crit{background:var(--crit-bg);color:var(--crit-ink)}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border:1px solid var(--line);border-radius:4px;color:var(--muted);white-space:nowrap}
+/* stage ribbon */
+.ribbon{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;min-width:120px}
+.ribbon i{height:8px;border-radius:2px;background:var(--seg-todo)}
+.ribbon i.done{background:var(--seg-done)}.ribbon i.active{background:var(--seg-active)}.ribbon i.blocked{background:var(--seg-block)}
+.ribbon i.na{background:repeating-linear-gradient(135deg,var(--seg-todo) 0 2px,transparent 2px 4px)}
+.pct{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:3px}
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;background:var(--btn-bg);color:var(--btn-fg);border:1px solid transparent;border-radius:7px;padding:7px 13px;font-weight:600;font-size:13px}
+.btn:hover{background:var(--btn-hover)}
+.btn.sec{background:var(--surface);color:var(--fg);border-color:var(--line)}.btn.sec:hover{border-color:var(--muted)}
+.btn.danger{background:var(--surface);color:var(--crit-ink);border-color:var(--crit-ink)}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+/* forms */
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px 14px}
+.fld{display:flex;flex-direction:column;gap:4px;min-width:0}.fld.full{grid-column:1/-1}
+.fld label{font-size:12px;color:var(--muted);font-weight:500}
+.fld input,.fld select,.fld textarea{background:var(--surface-2);border:1px solid var(--line);border-radius:7px;padding:8px 10px;width:100%}
+.fld textarea{min-height:120px;resize:vertical}
+.fld .err{color:var(--crit-ink);font-size:12px}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13px}
+.sect{font-family:var(--mono);font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin:18px 0 8px;grid-column:1/-1;border-top:1px solid var(--line);padding-top:12px}
+/* shipment file */
+.sf-head{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px 18px}
+.kv small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.kv span{font-weight:500}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:18px 0 14px;flex-wrap:wrap}
+.tabs button{background:none;border:0;padding:9px 14px;color:var(--muted);font-weight:600;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--gold)}
+.md{display:grid;grid-template-columns:260px minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:860px){.md{grid-template-columns:minmax(0,1fr)}}
+.rail{display:flex;flex-direction:column;overflow:hidden}
+.rail button{display:flex;gap:10px;align-items:center;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:10px 14px;width:100%}
+.rail button:last-child{border-bottom:0}
+.rail button[aria-current="true"]{background:var(--surface-2);box-shadow:inset 3px 0 0 var(--gold)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--seg-todo)}
+.dot.done{background:var(--seg-done)}.dot.active{background:var(--seg-active)}.dot.blocked{background:var(--seg-block)}.dot.na{background:transparent;border:1px dashed var(--muted)}
+.rail small{display:block;color:var(--muted);font-size:11.5px}
+.doc{border:1px solid var(--line);border-radius:9px;padding:12px 14px;background:var(--surface);display:grid;gap:8px}
+.doc+.doc{margin-top:10px}
+.doc.nr{opacity:.62;background:var(--surface-2)}
+.doc-top{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:space-between}
+.doc-top b{font-weight:600}
+.doc-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
+.doc-act{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.note{font-size:12.5px;padding:7px 10px;border-radius:6px;display:flex;gap:8px}
+.note.hard{background:var(--crit-bg);color:var(--crit-ink)}.note.soft{background:var(--warn-bg);color:var(--warn-ink)}.note.info{background:var(--neu-bg);color:var(--neu-ink)}
+.audit{list-style:none;margin:0;padding:0}
+.audit li{display:grid;grid-template-columns:150px 1fr;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+@media(max-width:560px){.audit li{grid-template-columns:1fr;gap:2px}}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.filters input,.filters select{background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:7px 10px}
+/* modal + toast */
+.modal-bg{position:fixed;inset:0;background:rgba(20,12,6,.55);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:12px;width:100%;max-width:640px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.modal.wide{max-width:820px}
+.modal-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.modal-h h2{font-size:18px}.modal-b{padding:16px 18px;display:grid;gap:12px}
+.modal-f{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;padding:12px 18px;border-top:1px solid var(--line)}
+.paper{background:var(--paper);color:var(--paper-ink);border:1px solid #d8cfbd;padding:28px 30px;font-family:Georgia,'Times New Roman',serif;font-size:13.5px;line-height:1.55}
+.paper h3{font-family:Georgia,serif;font-size:20px;text-align:center;letter-spacing:.5px;margin-bottom:4px}
+.paper .lh{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:2px solid #23402B;padding-bottom:10px;margin-bottom:14px;font-size:12px}
+.paper table{min-width:0;font-size:13px}.paper th,.paper td{border:1px solid #cfc6b3;padding:6px 8px;color:var(--paper-ink);font-family:Georgia,serif;letter-spacing:0;text-transform:none;font-size:13px}
+.paper th{background:#f1ebdd}
+.toasts{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));display:grid;gap:8px;z-index:60;max-width:min(380px,calc(100vw - 32px))}
+.toast{background:var(--fg);color:var(--bg);padding:10px 14px;border-radius:8px;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+@media(prefers-reduced-motion:no-preference){.modal{animation:pop .15s ease}@keyframes pop{from{transform:translateY(6px);opacity:0}}}
+
+
+.tbtn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:7px;padding:6px 10px;font-size:12.5px;display:inline-flex;gap:6px;align-items:center}
+.tbtn:hover{background:rgba(255,255,255,.18)}
+.att{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:12px;background:var(--surface-2);margin:0 6px 6px 0}
+.att.warn{color:var(--warn-ink);background:var(--warn-bg);border-color:transparent}
+.fld textarea.mailbody{min-height:250px;line-height:1.55}
+.lg-wrap{display:grid;place-items:center;min-height:100vh;padding:24px 0;position:relative}
+.lg-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;max-width:440px;width:100%;box-shadow:var(--shadow);display:grid;gap:14px}
+.lg-card h1{font-size:22px}.lg-top{position:absolute;top:14px;right:0}
+.lg-top .tbtn{background:var(--surface);color:var(--fg);border-color:var(--line)}
+.inbox{border:1px dashed var(--gold);border-radius:10px;padding:10px 12px;background:var(--surface-2);font-size:13px}
+.inbox b.code{font-family:var(--mono);font-size:22px;letter-spacing:5px;color:var(--accent-ink);display:block;margin-top:4px}
+.mrow{display:grid;grid-template-columns:70px minmax(0,1fr);gap:8px;align-items:center}
+@media print{body *{visibility:hidden}.paper,.paper *{visibility:visible}.paper{position:absolute;left:0;top:0;width:100%;border:0;padding:0}.hdr,.toasts,body::before{display:none}}
+.bdemo{background:var(--surface-2);border-bottom:1px solid var(--line);padding:8px 14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--muted)}
+.bdemo .tbtn{background:var(--surface);color:var(--fg);border-color:var(--line)}
+.bbox .paper{margin:12px 0}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<script>
+/* ===== Master data: roles, stages, documents, flows, block rules ===== */
+var DAY = 86400000;
+var ROLES = ['Export Manager','Documentation Officer','Warehouse Officer','Finance Officer','Administrator','Management'];
+var USERS = {'Export Manager':'Hana Tadesse','Documentation Officer':'Selam Tesfaye','Warehouse Officer':'Abel Mekonnen',
+  'Finance Officer':'Rahel Bekele','Administrator':'System Admin','Management':'Management'};
+var PAY = ['LC','CAD','TT'];
+var PAY_NAME = {LC:'Letter of Credit',CAD:'Cash Against Documents',TT:'Telegraphic Transfer'};
+var INCOTERMS = ['FOB','CFR','CIF','FCA'];
+var SHIP_LINES = ['Maersk','MSC','CMA CGM','Hapag-Lloyd'];
+var BUYERS = [
+  {name:'Nordic Roasters Import AS',address:'Akersgata 12, 0158 Oslo',country:'Norway',port:'Oslo'},
+  {name:'Kyoto Bean Trading Co.',address:'2-14 Karasuma-dori, Kyoto 600-8216',country:'Japan',port:'Yokohama'},
+  {name:'Hamburger Kaffeekontor GmbH',address:'Speicherstadt 7, 20457 Hamburg',country:'Germany',port:'Hamburg'},
+  {name:'Pacific Specialty Imports LLC',address:'410 Harbor Way, Oakland, CA 94607',country:'United States',port:'Oakland'},
+  {name:'Caffe Brenta SRL',address:'Via dei Mille 22, 35131 Padova',country:'Italy',port:'Genoa'}
+];
+var COFFEES = ['Yirgacheffe Washed','Sidamo Washed','Sidamo Natural','Guji Natural','Limu Washed','Harrar Natural','Jimma Natural','Gera Washed','Kafa Natural'];
+var SUPPLIERS = ['Yirga Highland Cooperative','Guji Growers Union','Sidama Estates PLC','Harar Ridge Processing','Jimma Origin Farms'];
+var GRADES = ['Grade 1','Grade 2','Grade 3','Grade 4'];
+
+/* Stages follow the dashboard's 10 steps; docs reference the master register numbers. */
+var STAGES = [
+ {id:1,name:'Contract Registration',owner:'Documentation Officer',docs:[1,2,3],cond:'Sales contract registered, registered copy uploaded, certificate number assigned.'},
+ {id:2,name:'Bag Mark Approval',owner:'Documentation Officer',docs:[4,5,6],cond:'Buyer instructions received, draft approved by the buyer, approved version on file.'},
+ {id:3,name:'Warehouse Preparation',owner:'Warehouse Officer',docs:[7],cond:'Warehouse instruction sent and acknowledged; coffee prepared with the approved bag mark.'},
+ {id:4,name:'Sample Approval',owner:'Documentation Officer',docs:[8,9],cond:'Sample dispatched and the buyer approval recorded. Dispatch and approval are separate steps.'},
+ {id:5,name:'LC Processing',owner:'Documentation Officer',when:'LC',docs:[10,11,12],cond:'Draft LC checked against the contract, approved, and the final LC received.'},
+ {id:6,name:'Authority Inspection',owner:'Documentation Officer',docs:[13,14,15],cond:'Application package submitted and the inspection or result certificate recorded.'},
+ {id:7,name:'Shipping Booking',owner:'Documentation Officer',docs:[16,17,18,19,20,25],cond:'Booking submitted to the nominated line and the booking confirmation uploaded.'},
+ {id:8,name:'Banking Permit',owner:'Documentation Officer',docs:[22,23,33,24],cond:'Documents for the payment method complete and the banking permit recorded.'},
+ {id:9,name:'Container Collection',owner:'Documentation Officer',docs:[26,21,27,28],cond:'Empty container paid for, release order received, truck ordered.'},
+ {id:10,name:'Loading',owner:'Warehouse Officer',docs:[29,30,31,32],cond:'Loading schedule sent, container loaded, second-round inspection recorded.'}
+];
+
+/* Flows: each step is [status, action label to enter it, roles allowed (optional)] */
+var FLOWS = {
+ gen:[['Pending Preparation'],['Draft','Generate'],['Completed','Finalize']],
+ rev:[['Pending Preparation'],['Draft','Generate'],['Pending Internal Review','Send for review'],['Approved','Approve',['Export Manager']],['Completed','Finalize']],
+ buyer:[['Pending Preparation'],['Draft','Generate'],['Pending External Response','Send to buyer'],['Completed','Record buyer approval']],
+ ext:[['Pending Preparation'],['Pending External Response','Mark requested'],['Completed','Upload file']],
+ up:[['Pending Preparation'],['Completed','Upload file']],
+ sub:[['Pending Preparation'],['Draft','Prepare'],['Submitted','Record submission'],['Completed','Record result']]
+};
+
+/* Document master (register numbers 1-32 from the guideline, plus 33 added for TT verification) */
+var DOCS = [
+ {id:1,name:'Sales Contract',cat:'Contract',src:'System-Generated',cond:'all',owner:'Documentation Officer',flow:'rev',gen:1},
+ {id:2,name:'Registered Sales Contract',cat:'Contract',src:'External Attachment',cond:'all',owner:'Documentation Officer',flow:'up'},
+ {id:3,name:'Shipment File / Certificate No.',cat:'Contract',src:'System-Generated',cond:'all',owner:'Documentation Officer',flow:'gen',gen:1},
+ {id:4,name:'Bag Mark Instructions',cat:'Bag Mark',src:'Buyer-Provided',cond:'all',owner:'Documentation Officer',flow:'ext',lab:['Request from buyer','Upload instructions']},
+ {id:5,name:'Bag Mark Draft',cat:'Bag Mark',src:'System-Generated',cond:'all',owner:'Documentation Officer',flow:'buyer',gen:1,buyerApproval:1,reject:1},
+ {id:6,name:'Approved Bag Mark',cat:'Bag Mark',src:'Buyer-Approved',cond:'all',owner:'Documentation Officer',flow:'up',lab:['Upload approved version']},
+ {id:7,name:'Warehouse Preparation Instructions',cat:'Warehouse',src:'System-Generated',cond:'all',owner:'Documentation Officer',gen:1,
+   flow:[['Pending Preparation'],['Draft','Generate'],['Submitted','Send to warehouse'],['Completed','Record acknowledgment and preparation done',['Warehouse Officer']]]},
+ {id:8,name:'Sample Dispatch Record',cat:'Sample',src:'System-Generated',cond:'all',owner:'Documentation Officer',flow:'gen',lab:['Create sample record','Record dispatch'],gen:1},
+ {id:9,name:'Sample Approval / Rejection Record',cat:'Sample',src:'External Attachment',cond:'all',owner:'Documentation Officer',buyerApproval:1,reject:1,
+   flow:[['Pending Preparation'],['Pending External Response','Mark awaiting buyer'],['Completed','Record buyer approval']]},
+ {id:10,name:'LC Application Letter',cat:'LC',src:'External Attachment',cond:'LC',owner:'Documentation Officer',flow:'ext',lab:['Send LC reminder and bank details','Upload LC application']},
+ {id:11,name:'Draft LC',cat:'LC',src:'External Attachment',cond:'LC',owner:'Documentation Officer',reject:1,
+   flow:[['Pending Preparation'],['Pending External Response','Mark awaiting draft LC'],['Pending Internal Review','Upload draft LC for review'],['Completed','Approve draft LC']]},
+ {id:12,name:'Final LC',cat:'LC',src:'External Attachment',cond:'LC',owner:'Documentation Officer',flow:'ext',lab:['Mark awaiting original LC','Upload final LC']},
+ {id:13,name:'Coffee & Tea Authority Application Certificate',cat:'Authority',src:'System-Generated',cond:'all',owner:'Documentation Officer',flow:'gen',gen:1},
+ {id:14,name:'Application Letter',cat:'Authority',src:'System-Generated',cond:'all',owner:'Documentation Officer',flow:'gen',gen:1},
+ {id:15,name:'Coffee Inspection / Result Certificate',cat:'Authority',src:'External Attachment',cond:'all',owner:'Documentation Officer',flow:'ext',lab:['Record package submission','Upload certificate']},
+ {id:16,name:'Shipping Arrangement / Booking Request',cat:'Shipping',src:'System-Generated',cond:'all',owner:'Documentation Officer',flow:'sub',gen:1,lab:['Prepare','Submit to shipping line','Record booking reference']},
+ {id:17,name:'Shipping Instruction (SI)',cat:'Shipping',src:'System-Generated',cond:'all',owner:'Documentation Officer',flow:'rev',gen:1,reject:1},
+ {id:18,name:'B/L Template',cat:'Shipping',src:'System-Generated',cond:'all',owner:'Documentation Officer',flow:'gen',gen:1},
+ {id:19,name:'Letter of Indemnity for Empty Container Release',cat:'Shipping',src:'System-Generated',cond:'loi',owner:'Documentation Officer',flow:'gen',gen:1},
+ {id:20,name:'Empty Container Withdrawal Agreement',cat:'Shipping',src:'System-Generated',cond:'wda',owner:'Documentation Officer',flow:'gen',gen:1},
+ {id:21,name:'Empty Container Release Order',cat:'Container',src:'External Attachment',cond:'all',owner:'Documentation Officer',flow:'ext',lab:['Mark requested','Upload release order']},
+ {id:22,name:'Commercial Invoice for Banking Permit',cat:'Banking',src:'System-Generated',cond:'all',owner:'Documentation Officer',gen:1,reject:1,
+   flow:[['Pending Preparation'],['Draft','Generate'],['Pending Internal Review','Send for verification'],['Approved','Verify',['Finance Officer','Export Manager']],['Completed','Finalize']]},
+ {id:23,name:'Undertaking Letter',cat:'Banking',src:'System-Generated',cond:'CAD',owner:'Documentation Officer',flow:'rev',gen:1,reject:1},
+ {id:24,name:'Banking Permit',cat:'Banking',src:'External Attachment',cond:'all',owner:'Documentation Officer',flow:'ext',lab:['Record Single Window submission','Upload banking permit']},
+ {id:25,name:'Booking Confirmation',cat:'Shipping',src:'External Attachment',cond:'all',owner:'Documentation Officer',flow:'up',lab:['Upload booking confirmation']},
+ {id:26,name:'Empty Container Payment Record',cat:'Container',src:'System-Generated',cond:'all',owner:'Finance Officer',flow:'gen',lab:['Record payment','Attach evidence and complete'],gen:1},
+ {id:27,name:'Waybill / Truck Waybill',cat:'Container',src:'External Attachment',cond:'waybill',owner:'Documentation Officer',flow:'up',lab:['Upload waybill']},
+ {id:28,name:'Truck Order / Container Collection Record',cat:'Container',src:'System-Generated',cond:'all',owner:'Documentation Officer',flow:'gen',lab:['Generate truck order','Record collection'],gen:1},
+ {id:29,name:'Loading Schedule',cat:'Loading',src:'System-Generated',cond:'all',owner:'Documentation Officer',flow:'gen',lab:['Generate','Send to buyer'],gen:1},
+ {id:30,name:'Cargo Label',cat:'Loading',src:'System-Generated',cond:'cargoLabel',owner:'Documentation Officer',flow:'gen',lab:['Generate and print','Send to warehouse'],gen:1},
+ {id:31,name:'Container, Seal, Truck and Driver Details',cat:'Loading',src:'System-Generated',cond:'all',owner:'Warehouse Officer',flow:'gen',lab:['Start loading record','Complete loading record']},
+ {id:32,name:'Second-Round Inspection Record',cat:'Loading',src:'System-Generated',cond:'all',owner:'Warehouse Officer',flow:'gen',lab:['Record inspection','Upload evidence and complete']},
+ {id:33,name:'TT Payment Verification',cat:'Banking',src:'System-Generated',cond:'TT',owner:'Finance Officer',flow:'gen',lab:['Open verification','Confirm payment advice']}
+];
+var COND_LABEL = {all:'All shipments',LC:'LC only',CAD:'CAD only',TT:'TT only',cargoLabel:'If cargo label required',loi:'If empty-container LOI required',wda:'If withdrawal agreement required',waybill:'If waybill required'};
+var STATUSES = ['Not Required','Pending Preparation','Draft','Pending Internal Review','Pending Approval','Rejected','Revision Required','Approved','Ready for Submission','Submitted','Pending External Response','Completed','Expired','Cancelled'];
+
+/* Block rules. at = status index being entered from which the rule applies (default 1). */
+var BLOCK_RULES = [
+ {id:'R01',doc:5,req:[[4,'Completed']],mode:'hard',msg:'Bag mark instructions have not been received from the buyer.'},
+ {id:'R02',doc:6,req:[[5,'Completed']],mode:'hard',msg:'The buyer has not approved the bag mark draft.'},
+ {id:'R03',doc:7,req:[[6,'Completed']],mode:'hard',msg:'Warehouse instructions need the buyer-approved bag mark.'},
+ {id:'R04',doc:8,req:[[7,'Completed']],mode:'hard',msg:'Coffee preparation is not completed yet.'},
+ {id:'R05',doc:9,req:[[8,'Completed']],mode:'hard',msg:'The sample has not been dispatched.'},
+ {id:'R06',doc:10,when:'LC',req:[[9,'Completed']],mode:'soft',msg:'The sample is not approved yet. The LC reminder normally follows sample approval.'},
+ {id:'R07',doc:12,when:'LC',req:[[11,'Completed']],mode:'hard',msg:'The draft LC has not been approved.'},
+ {id:'R08',doc:13,req:[[2,'Completed'],[3,'Completed']],mode:'hard',msg:'The registered sales contract and shipment file number are required.'},
+ {id:'R09',doc:14,req:[[2,'Completed'],[3,'Completed']],mode:'hard',msg:'The registered sales contract and shipment file number are required.'},
+ {id:'R10',doc:15,req:[[13,'Completed'],[14,'Completed']],mode:'hard',msg:'The authority application certificate and letter must be prepared first.'},
+ {id:'R11',doc:16,req:[[15,'Completed']],mode:'soft',msg:'The authority certificate is still pending. The booking can go ahead as a preliminary arrangement.'},
+ {id:'R12',doc:17,req:[[16,'Draft']],mode:'hard',msg:'Booking details are missing: prepare the booking request first.'},
+ {id:'R13',doc:18,req:[[17,'Completed']],mode:'hard',msg:'The shipping instruction is not finalized.'},
+ {id:'R14',doc:25,req:[[16,'Submitted']],mode:'hard',msg:'The booking request has not been submitted to the shipping line.'},
+ {id:'R15',doc:22,req:[[7,'Completed']],mode:'soft',msg:'Warehouse preparation is not confirmed, so invoice quantities may still change.'},
+ {id:'R16',doc:24,req:[[22,'Completed']],mode:'hard',msg:'The commercial invoice for the banking permit is not completed.'},
+ {id:'R17',doc:24,when:'LC',req:[[12,'Completed']],mode:'hard',msg:'LC shipment: the final LC has not been received.'},
+ {id:'R18',doc:24,when:'CAD',req:[[23,'Completed']],mode:'hard',msg:'CAD shipment: the undertaking letter is not completed.'},
+ {id:'R19',doc:24,when:'TT',req:[[33,'Completed']],mode:'hard',msg:'TT shipment: the payment advice has not been verified.'},
+ {id:'R20',doc:21,req:[[25,'Completed']],mode:'hard',msg:'The booking confirmation has not been received.'},
+ {id:'R21',doc:26,req:[[25,'Completed']],mode:'soft',msg:'The booking confirmation has not arrived. Payment is normally arranged after it.'},
+ {id:'R22',doc:28,req:[[25,'Completed'],[21,'Completed'],[26,'Completed']],mode:'hard',msg:'Booking confirmation, container release order and container payment are needed before collection.'},
+ {id:'R23',doc:29,req:[[28,'Completed']],mode:'hard',msg:'The container collection has not been arranged.'},
+ {id:'R24',doc:31,req:[[29,'Completed']],mode:'hard',msg:'The loading schedule has not been sent.'},
+ {id:'R25',doc:32,req:[[31,'Draft']],mode:'hard',msg:'Container and seal details have not been recorded.'},
+ {id:'R26',doc:31,at:3,req:[[32,'Completed']],mode:'hard',msg:'The second-round inspection must be recorded before loading is completed.'}
+];
+
+/* ===== Seed data (dates are relative to today so the demo always looks current) ===== */
+function seedContracts(){
+  var n=Date.now();
+  function d(off){return new Date(n+off*DAY).toISOString().slice(0,10);}
+  function c(id,no,b,coffee,grade,mt,price,pay,inc,from,to,cdate,flags,status){
+    var bags=Math.round(mt*1000/60);
+    return {id:id,no:no,buyer:BUYERS[b].name,address:BUYERS[b].address,country:BUYERS[b].country,port:BUYERS[b].port,
+      coffee:coffee,grade:grade,mt:mt,bags:bags,price:price,total:mt*price,currency:'USD',pay:pay,inc:inc,
+      from:from,to:to,date:cdate,cargoLabel:flags[0],loi:flags[1],wda:flags[2],waybill:flags[3],status:status,shipId:null,
+      history:[{ts:new Date(n+(cdate?0:0)).toISOString(),user:'Selam Tesfaye',text:'Contract created'}]};
+  }
+  var arr=[
+    c(1,'SC-2026-014',0,'Sidamo Washed','Grade 2',19.2,5200,'LC','FOB',d(-40),d(12),d(-52),[false,true,true,true],'Open'),
+    c(2,'SC-2026-015',1,'Yirgacheffe Washed','Grade 1',19.2,5900,'CAD','FOB',d(-48),d(-3),d(-60),[true,false,false,true],'Open'),
+    c(3,'SC-2026-016',2,'Sidamo Natural','Grade 3',19.2,4800,'TT','CFR',d(5),d(35),d(-9),[true,false,false,false],'Open'),
+    c(4,'SC-2026-012',3,'Guji Natural','Grade 2',38.4,5400,'TT','FOB',d(-70),d(-30),d(-85),[false,false,false,false],'Open'),
+    c(5,'SC-2026-017',4,'Sidamo Washed','Grade 2',19.2,5350,'LC','CIF',d(20),d(50),d(-1),[false,true,false,true],'Draft')
+  ];
+  var sup=[0,0,2,1,2];arr.forEach(function(x,i){x.supplier=SUPPLIERS[sup[i]];});
+  return arr;
+}
+
+/* ===== State, helpers, rules engine ===== */
+var KEY='sb_export_erp_v1', S=null, DEFS={};
+DOCS.forEach(function(d){DEFS[d.id]=d;});
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+function save(){lsSet(KEY,JSON.stringify(S));}
+function nowIso(){return new Date().toISOString();}
+var NF=new Intl.NumberFormat('en-US');
+function money(v,c){return (c||'USD')+' '+NF.format(Math.round(v||0));}
+function fmtDate(iso){if(!iso)return '—';var d=new Date(iso);return isNaN(d)?'—':d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
+function daysSince(iso){return (Date.now()-new Date(iso).getTime())/DAY;}
+function ago(iso){var d=Math.floor(daysSince(iso));return d<=0?'today':(d===1?'1 day ago':d+' days ago');}
+function tone(status){
+  if(status==='Completed'||status==='Approved')return 'ok';
+  if(status==='Rejected'||status==='Revision Required'||status==='Expired')return 'crit';
+  if(status==='Not Required'||status==='Pending Preparation'||status==='Cancelled')return '';
+  return 'warn';
+}
+
+/* flows */
+function steps(def){
+  if(def._steps)return def._steps;
+  var base=typeof def.flow==='string'?FLOWS[def.flow]:def.flow;
+  def._steps=base.map(function(s,i){var a=s.slice();if(i>0&&def.lab&&def.lab[i-1])a[1]=def.lab[i-1];return a;});
+  return def._steps;
+}
+function stepIdx(def,status){var st=steps(def);for(var i=0;i<st.length;i++){if(st[i][0]===status)return i;}return -1;}
+function applies(def,ship){
+  var c=def.cond;
+  if(c==='all')return true;
+  if(PAY.indexOf(c)>=0)return ship.pay===c;
+  return !!ship[c];
+}
+function isReq(ship,id){var d=ship.docs[id];return d.status!=='Not Required'&&!d.irrelevant;}
+function isDone(ship,id){return ship.docs[id].status==='Completed';}
+
+/* conditional checklist: recompute applicable documents, keep completed ones, flag the rest */
+function recalc(ship){
+  var out=[];
+  DOCS.forEach(function(def){
+    var d=ship.docs[def.id],ap=applies(def,ship);
+    if(!ap){
+      if(d.status==='Not Required')return;
+      if(d.status==='Pending Preparation'){d.status='Not Required';d.changed=nowIso();out.push(def.name+' is now Not Required.');}
+      else if(!d.irrelevant){d.irrelevant=true;out.push(def.name+' no longer applies but already has progress. It was kept and flagged for review.');}
+    }else{
+      if(d.status==='Not Required'){d.status='Pending Preparation';d.changed=nowIso();out.push(def.name+' is now required.');}
+      if(d.irrelevant){d.irrelevant=false;out.push(def.name+' applies again and was restored.');}
+    }
+  });
+  return out;
+}
+
+/* blocks */
+function modeOf(r){return (S.ruleModes&&S.ruleModes[r.id])||r.mode;}
+function meets(ship,id,min){
+  var d=ship.docs[id];
+  if(!d||d.status==='Not Required'||d.irrelevant)return true;
+  var def=DEFS[id];
+  return stepIdx(def,d.status)>=stepIdx(def,min);
+}
+function whenOk(r,ship){
+  if(!r.when)return true;
+  return PAY.indexOf(r.when)>=0?ship.pay===r.when:!!ship[r.when];
+}
+function blocksFor(ship,docId,toIdx){
+  var out=[];
+  BLOCK_RULES.forEach(function(r){
+    if(r.doc!==docId||(r.at||1)>toIdx||!whenOk(r,ship))return;
+    var unmet=r.req.filter(function(q){return !meets(ship,q[0],q[1]);}).map(function(q){return DEFS[q[0]].name;});
+    if(unmet.length)out.push({rule:r,mode:modeOf(r),unmet:unmet});
+  });
+  return out;
+}
+function nextStep(ship,id){
+  var d=ship.docs[id],def=DEFS[id];
+  if(d.status==='Not Required'||d.irrelevant)return null;
+  var i=stepIdx(def,d.status),st=steps(def);
+  if(i<0)return {revise:true,idx:1,status:st[1][0],label:'Revise',roles:[def.owner,'Export Manager']};
+  if(i>=st.length-1)return null;
+  var n=st[i+1];
+  return {idx:i+1,status:n[0],label:n[1],roles:n[2]||[def.owner,'Export Manager'],needsFile:/^Upload/.test(n[1])};
+}
+function canReject(ship,id){
+  var d=ship.docs[id],def=DEFS[id];
+  return !!def.reject&&(d.status==='Pending Internal Review'||d.status==='Pending External Response');
+}
+
+/* audit */
+function logShip(ship,role,docId,action,detail){
+  ship.audit.unshift({ts:nowIso(),role:role,user:USERS[role]||role,docId:docId||null,action:action,detail:detail||''});
+}
+
+/* act on a document. kind: next | reject | revreq | revise */
+function doAct(ship,docId,kind,o){
+  o=o||{};
+  var role=S.role,def=DEFS[docId],d=ship.docs[docId],nx=nextStep(ship,docId);
+  if(!nx&&kind!=='reject'&&kind!=='revreq')return {ok:false,msg:'No further action for this document.'};
+  var allowed=nx?nx.roles:[def.owner,'Export Manager'];
+  if(allowed.indexOf(role)<0)return {ok:false,msg:'Your role ('+role+') cannot do this step. Allowed: '+allowed.join(', ')+'.'};
+  if(kind==='next'){
+    var bl=blocksFor(ship,docId,nx.idx),hard=bl.filter(function(b){return b.mode==='hard';}),soft=bl.filter(function(b){return b.mode==='soft';});
+    if(hard.length)return {ok:false,msg:hard[0].rule.msg};
+    if(soft.length&&!o.override)return {ok:false,confirm:true,soft:soft};
+    if(soft.length&&role!=='Export Manager')return {ok:false,msg:'This step has a warning that only an Export Manager can confirm.'};
+    d.status=nx.status;d.changed=nowIso();
+    if(o.file)d.file=o.file;
+    logShip(ship,role,docId,nx.label,def.name+' is now '+nx.status+(o.file?' (file: '+o.file+')':'')+(soft.length?'. Warning confirmed: '+(o.reason||'no reason given'):''));
+  }else if(kind==='revise'){
+    d.status=nx.status;d.version++;d.changed=nowIso();
+    logShip(ship,role,docId,'Revise',def.name+' returned to '+nx.status+' as version '+d.version);
+  }else if(kind==='reject'||kind==='revreq'){
+    if(!canReject(ship,docId))return {ok:false,msg:'This document cannot be rejected at its current status.'};
+    var who=steps(def)[stepIdx(def,d.status)+1];
+    var rr=(who&&who[2])||[def.owner,'Export Manager'];
+    if(rr.indexOf(role)<0)return {ok:false,msg:'Your role cannot reject this document. Allowed: '+rr.join(', ')+'.'};
+    d.status=kind==='reject'?'Rejected':'Revision Required';d.changed=nowIso();
+    if(o.reason)d.remarks=o.reason;
+    logShip(ship,role,docId,kind==='reject'?'Reject':'Request revision',def.name+' marked '+d.status+(o.reason?': '+o.reason:''));
+  }
+  save();
+  return {ok:true};
+}
+
+/* stages and summary */
+function stageInfo(ship,st){
+  var dl=st.docs.filter(function(id){return isReq(ship,id);});
+  if((st.when&&ship.pay!==st.when)||!dl.length)return {state:'na',done:0,total:0,docs:dl};
+  var done=dl.filter(function(id){return isDone(ship,id);}).length;
+  var started=dl.some(function(id){return stepIdx(DEFS[id],ship.docs[id].status)!==0;});
+  var state=done===dl.length?'done':(started?'active':'todo');
+  if(state==='todo'){
+    var allB=dl.every(function(id){
+      var nx=nextStep(ship,id);
+      if(!nx||nx.revise)return false;
+      return blocksFor(ship,id,nx.idx).some(function(b){return b.mode==='hard';});
+    });
+    if(allB)state='blocked';
+  }
+  return {state:state,done:done,total:dl.length,docs:dl};
+}
+var STATE_TXT={todo:'Not started',active:'In progress',blocked:'Blocked',done:'Completed',na:'Not applicable'};
+function summ(ship){
+  var stages=STAGES.map(function(st){return stageInfo(ship,st);});
+  var total=0,done=0;
+  stages.forEach(function(s){total+=s.total;done+=s.done;});
+  var ci=-1;
+  for(var i=0;i<stages.length;i++){if(stages[i].state!=='done'&&stages[i].state!=='na'){ci=i;break;}}
+  stages.forEach(function(s,i){if(i!==ci&&s.state==='blocked')s.state='todo';});
+  var cur=ci>=0?STAGES[ci]:null,status='On track';
+  if(ci<0)status='Completed';
+  else if(ship.deadline&&new Date(ship.deadline).getTime()+DAY<Date.now())status='Delayed';
+  else if(stages[ci].state==='blocked')status='Blocked';
+  return {stages:stages,total:total,done:done,pct:total?Math.round(done/total*100):0,cur:cur,curIdx:ci,status:status,
+    resp:cur?USERS[cur.owner]:'—'};
+}
+
+/* contracts and shipments */
+function contractLog(c,role,text){c.history.unshift({ts:nowIso(),user:USERS[role]||role,text:text});}
+function newDocs(){
+  var o={};
+  DOCS.forEach(function(def){o[def.id]={status:'Pending Preparation',version:1,changed:nowIso(),file:null,irrelevant:false,remarks:''};});
+  return o;
+}
+function createShipment(c,file,role){
+  var id=S.nextShipId++;S.certCounter++;
+  var cert='SB-EXP-2026-'+('0000'+S.certCounter).slice(-4);
+  var etd=c.to?new Date(new Date(c.to).getTime()-7*DAY).toISOString().slice(0,10):'';
+  var ship={id:id,cert:cert,contractId:c.id,contractNo:c.no,buyer:c.buyer,address:c.address,country:c.country,port:c.port,
+    coffee:c.coffee,grade:c.grade,mt:c.mt,bags:c.bags,loadedMt:null,price:c.price,total:c.total,currency:c.currency,pay:c.pay,inc:c.inc,
+    deadline:c.to,etd:etd,line:SHIP_LINES[id%SHIP_LINES.length],cargoLabel:c.cargoLabel,loi:c.loi,wda:c.wda,waybill:c.waybill,
+    supplier:c.supplier||SUPPLIERS[0],openedAt:nowIso(),closedAt:null,docs:newDocs(),audit:[]};
+  recalc(ship);
+  [1,2,3].forEach(function(i){ship.docs[i].status='Completed';});
+  ship.docs[2].file=file||'registered-contract.pdf';
+  logShip(ship,role,3,'Open shipment file','Certificate number '+cert+' assigned. Registered contract uploaded: '+ship.docs[2].file);
+  c.status='Open';c.shipId=id;
+  contractLog(c,role,'Registered contract uploaded. Shipment file '+cert+' opened.');
+  S.ships.push(ship);
+  return ship;
+}
+function setDoc(ship,id,status,daysAgo){
+  var d=ship.docs[id],def=DEFS[id];
+  if(d.status==='Not Required')return;
+  d.status=status;d.changed=new Date(Date.now()-daysAgo*DAY).toISOString();
+  if(status==='Completed'&&def.src.indexOf('External')===0||status==='Completed'&&def.src==='Buyer-Provided'||status==='Completed'&&def.src==='Buyer-Approved'){
+    d.file=def.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-$/,'')+'.pdf';
+  }
+  ship.audit.push({ts:d.changed,role:def.owner,user:USERS[def.owner],docId:id,action:'Status update',detail:def.name+' set to '+status});
+}
+function seedShips(){
+  var byId={};S.contracts.forEach(function(c){byId[c.id]=c;});
+  // D: completed shipment (oldest)
+  var d=createShipment(byId[4],'registered-sc-2026-012.pdf','Documentation Officer');
+  d.openedAt=new Date(Date.now()-45*DAY).toISOString();d.closedAt=new Date(Date.now()-9*DAY).toISOString();
+  d.loadedMt=38.4;d.etd=new Date(Date.now()-14*DAY).toISOString().slice(0,10);d.line='Maersk';
+  var k=0;DOCS.forEach(function(def){if(isReq(d,def.id)&&def.id>3){setDoc(d,def.id,'Completed',44-Math.floor(k*35/30));k++;}});
+  d.audit.sort(function(a,b){return b.ts<a.ts?-1:1;});
+  // A: LC shipment waiting on draft LC review
+  var a=createShipment(byId[1],'registered-sc-2026-014.pdf','Documentation Officer');
+  a.openedAt=new Date(Date.now()-30*DAY).toISOString();
+  [[4,28],[5,24],[6,22],[7,17],[8,12],[9,8],[10,6]].forEach(function(p){setDoc(a,p[0],'Completed',p[1]);});
+  setDoc(a,11,'Pending Internal Review',5);
+  a.audit.sort(function(x,y){return y.ts<x.ts?-1:1;});
+  // B: CAD shipment past its deadline, in booking and banking
+  var b=createShipment(byId[2],'registered-sc-2026-015.pdf','Documentation Officer');
+  b.openedAt=new Date(Date.now()-42*DAY).toISOString();
+  [[4,40],[5,36],[6,34],[7,30],[8,24],[9,20],[13,17],[14,17],[15,10]].forEach(function(p){setDoc(b,p[0],'Completed',p[1]);});
+  setDoc(b,16,'Submitted',4);setDoc(b,17,'Pending Internal Review',6);setDoc(b,22,'Draft',2);
+  b.audit.sort(function(x,y){return y.ts<x.ts?-1:1;});
+  // C: TT shipment, bag mark waiting for the buyer
+  var c=createShipment(byId[3],'registered-sc-2026-016.pdf','Documentation Officer');
+  c.openedAt=new Date(Date.now()-8*DAY).toISOString();
+  setDoc(c,4,'Completed',6);setDoc(c,5,'Pending External Response',4);
+  c.audit.sort(function(x,y){return y.ts<x.ts?-1:1;});
+  byId[5].status='Draft';
+}
+function freshState(){
+  S={role:'Documentation Officer',contracts:seedContracts(),ships:[],certCounter:0,nextShipId:1,nextContractId:6,ruleModes:{}};
+  seedShips();save();
+}
+function loadState(){
+  var raw=lsGet(KEY);
+  if(raw){try{S=JSON.parse(raw);if(S&&S.ships&&S.contracts)return;}catch(e){}}
+  freshState();
+}
+
+/* dashboard numbers */
+function dashboard(){
+  var sums=S.ships.map(summ),k={active:0,completed:0,delayed:0,buyerAp:0,authority:0,permit:0,booking:0,loading:0,ready:0,days:[]};
+  var overdue={};
+  S.ships.forEach(function(s,i){
+    var m=sums[i];
+    if(m.status==='Completed'){k.completed++;if(s.closedAt)k.days.push((new Date(s.closedAt)-new Date(s.openedAt))/DAY);return;}
+    k.active++;if(m.status==='Delayed')k.delayed++;
+    DOCS.forEach(function(def){
+      if(!isReq(s,def.id))return;
+      var d=s.docs[def.id],nx=nextStep(s,def.id);
+      if(d.status==='Pending External Response'&&def.buyerApproval)k.buyerAp++;
+      if(def.id===15&&d.status==='Pending External Response')k.authority++;
+      if(def.id===24&&d.status==='Pending External Response')k.permit++;
+      if(def.id===25&&d.status!=='Completed'&&meets(s,16,'Submitted'))k.booking++;
+      if(d.status==='Pending Preparation'&&nx&&!blocksFor(s,def.id,nx.idx).some(function(b){return b.mode==='hard';}))k.ready++;
+      if(d.status!=='Completed'&&nx&&!nx.revise&&!blocksFor(s,def.id,nx.idx).some(function(b){return b.mode==='hard';})&&daysSince(d.changed)>3){
+        var u=USERS[nx.roles[0]];overdue[u]=(overdue[u]||0)+1;
+      }
+    });
+    if(s.docs[28].status==='Completed'&&s.docs[31].status!=='Completed')k.loading++;
+  });
+  k.pendingContracts=S.contracts.filter(function(c){return c.status!=='Open';}).length;
+  k.avg=k.days.length?(k.days.reduce(function(a,b){return a+b;},0)/k.days.length):null;
+  k.overdue=Object.keys(overdue).map(function(n){return {name:n,n:overdue[n]};}).sort(function(a,b){return b.n-a.n;});
+  k.sums=sums;
+  return k;
+}
+
+/* ===== UI part 1: shell, router, dashboard, contracts ===== */
+var V={page:'dashboard',shipId:null,tab:'stages',stage:1,q:'',fPay:'',fStat:'',dq:'',dcat:'',dstat:'',modal:null};
+var $app=document.getElementById('app');
+
+function toast(msg){
+  var box=document.getElementById('toasts'),t=document.createElement('div');
+  t.className='toast';t.textContent=msg;box.appendChild(t);
+  setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},4200);
+}
+function go(page,id){V.page=page;if(id!=null){V.shipId=id;V.tab='stages';V.stage=1;}V.modal=null;
+  try{location.hash=page==='ship'?'shipment-'+id:page;}catch(e){}render();window.scrollTo(0,0);}
+function pageFromHash(){
+  var h=(location.hash||'').replace('#','');
+  if(/^buyer-/.test(h)){if(BS.tok!==h)BS={tok:h,step:1,code:'',sentAt:'',err:'',name:'',done:null};V.buyer=h;return;}
+  V.buyer=null;
+  if(/^shipment-\d+$/.test(h)){V.page='ship';V.shipId=+h.split('-')[1];}
+  else if(['dashboard','contracts','documents','admin'].indexOf(h)>=0)V.page=h;
+}
+function getShip(id){for(var i=0;i<S.ships.length;i++){if(S.ships[i].id===id)return S.ships[i];}return null;}
+function canSee(page){
+  var r=S.role;
+  if(page==='admin')return r==='Administrator';
+  if(page==='lots')return r==='Warehouse Officer'||r==='Export Manager'||r==='Administrator';
+  return true;
+}
+function canWriteContracts(){return S.role==='Documentation Officer'||S.role==='Export Manager';}
+
+function header(){
+  var nav=[['dashboard','Dashboard'],['contracts','Contracts'],['documents','Documents'],['admin','Admin']]
+    .filter(function(n){return canSee(n[0]);})
+    .map(function(n){return '<button data-go="'+n[0]+'"'+((V.page===n[0]||(V.page==='ship'&&n[0]==='dashboard'))?' aria-current="page"':'')+'>'+n[1]+'</button>';}).join('');
+  var opts=ROLES.map(function(r){return '<option'+(r===S.role?' selected':'')+'>'+r+'</option>';}).join('');
+  return '<header class="hdr"><div class="hdr-in">'+
+    '<div class="brand"><svg width="26" height="26" viewBox="0 0 26 26" fill="none" aria-hidden="true"><circle cx="13" cy="13" r="12" stroke="#BE8F3E" stroke-width="1.4"/><path d="M13 4C9 8 9 12 13 22 17 12 17 8 13 4Z" fill="#BE8F3E" opacity=".85"/></svg>'+
+    '<div><b>Sheba Beans Export ERP</b><small>Shipment files &middot; Demo</small></div></div>'+
+    '<nav class="nav" aria-label="Main">'+nav+'</nav>'+
+    '<div class="hdr-r"><label for="roleSel">Viewing as</label><select id="roleSel">'+opts+'</select>'+
+    themeBtn()+'<button class="link-btn" id="resetDemo">Reset demo data</button></div></div></header>';
+}
+
+function render(){
+  if(V.buyer){$app.innerHTML=buyerPage();return;}
+  if(!authed()){$app.innerHTML=loginPage();return;}
+  if(!canSee(V.page))V.page='dashboard';
+  var body='';
+  if(V.page==='dashboard')body=pageDashboard();
+  else if(V.page==='contracts')body=pageContracts();
+  else if(V.page==='ship')body=pageShip();
+  else if(V.page==='documents')body=pageDocuments();
+  else if(V.page==='admin')body=pageAdmin();
+  $app.innerHTML=header()+'<main class="wrap">'+body+'</main>'+(V.modal?modalHtml():'');
+  if(V.modal&&V.modal.after)V.modal.after();
+}
+
+/* ---------- dashboard ---------- */
+function ribbon(m){
+  return '<div class="ribbon" role="img" aria-label="Stage progress">'+m.stages.map(function(s,i){
+    var c=s.state==='done'?'done':s.state==='active'?'active':s.state==='blocked'?'blocked':s.state==='na'?'na':'';
+    return '<i class="'+c+'" title="'+esc(STAGES[i].name+': '+STATE_TXT[s.state])+'"></i>';}).join('')+'</div>';
+}
+function statusPill(st){return '<span class="pill '+(st==='Completed'?'ok':st==='On track'?'':st==='Blocked'?'warn':'crit')+'">'+st+'</span>';}
+
+function pageDashboard(){
+  var k=dashboard(),rows=S.ships.map(function(s,i){return {s:s,m:k.sums[i]};});
+  rows=rows.filter(function(r){
+    var q=V.q.toLowerCase();
+    if(q&&(r.s.cert+' '+r.s.buyer+' '+r.s.contractNo).toLowerCase().indexOf(q)<0)return false;
+    if(V.fPay&&r.s.pay!==V.fPay)return false;
+    if(V.fStat&&r.m.status!==V.fStat)return false;
+    return true;
+  }).sort(function(a,b){return (a.m.status==='Completed')-(b.m.status==='Completed')||new Date(a.s.deadline)-new Date(b.s.deadline);});
+  var tr=rows.map(function(r){
+    var s=r.s,m=r.m;
+    return '<tr class="click" tabindex="0" data-ship="'+s.id+'"><td><b class="mono">'+esc(s.cert)+'</b><div class="muted" style="font-size:12px">'+esc(s.contractNo)+'</div></td>'+
+      '<td>'+esc(s.buyer)+'<div class="muted" style="font-size:12px">'+s.mt+' MT '+esc(s.coffee)+'</div></td>'+
+      '<td><span class="tag">'+s.pay+'</span></td>'+
+      '<td style="min-width:150px">'+ribbon(m)+'<div class="pct">'+m.pct+'% &middot; '+m.done+' of '+m.total+' documents</div></td>'+
+      '<td>'+(m.cur?esc(m.cur.name):'All stages complete')+'<div class="muted" style="font-size:12px">'+esc(m.resp)+'</div></td>'+
+      '<td class="mono">'+fmtDate(s.deadline)+'</td><td>'+statusPill(m.status)+'</td></tr>';
+  }).join('')||'<tr><td colspan="7" class="empty">No shipments match these filters.</td></tr>';
+  var od=k.overdue.length?k.overdue.map(function(o){return '<li style="display:flex;justify-content:space-between"><span>'+esc(o.name)+'</span><b class="mono">'+o.n+'</b></li>';}).join(''):'<li class="muted">Nothing overdue.</li>';
+  return '<div class="page-h"><div><h1>Shipment dashboard</h1><p>Progress comes from completed required documents, not from uploaded files.</p></div>'+
+    (canWriteContracts()?'<button class="btn" data-go="contracts">New sales contract</button>':'')+'</div>'+
+    '<section class="strip" aria-label="Key figures">'+
+      '<div><div class="stat-l">Active shipments</div><div class="stat-v">'+k.active+'</div></div>'+
+      '<div><div class="stat-l">Completed</div><div class="stat-v">'+k.completed+'</div></div>'+
+      '<div><div class="stat-l">Delayed</div><div class="stat-v'+(k.delayed?' crit':'')+'">'+k.delayed+'</div></div>'+
+      '<div><div class="stat-l">Contracts awaiting registration</div><div class="stat-v">'+k.pendingContracts+'</div></div>'+
+      '<div><div class="stat-l">Avg. days to complete</div><div class="stat-v">'+(k.avg==null?'—':Math.round(k.avg))+'</div></div></section>'+
+    '<section class="wait" aria-label="Waiting on">'+
+      '<div><b>'+k.buyerAp+'</b><span>waiting for buyer approval</span></div>'+
+      '<div><b>'+k.authority+'</b><span>waiting for authority</span></div>'+
+      '<div><b>'+k.permit+'</b><span>waiting for banking permit</span></div>'+
+      '<div><b>'+k.booking+'</b><span>waiting for booking confirmation</span></div>'+
+      '<div><b>'+k.loading+'</b><span>ready for loading</span></div></section>'+
+    '<div class="grid g-main"><div class="card"><div class="card-h"><h2>Shipment files</h2><div class="filters" style="margin:0">'+
+      '<input id="dq" type="search" placeholder="Search certificate, buyer, contract" value="'+esc(V.q)+'" aria-label="Search shipments">'+
+      '<select id="dPay" aria-label="Payment method"><option value="">All payment methods</option>'+PAY.map(function(p){return '<option'+(V.fPay===p?' selected':'')+'>'+p+'</option>';}).join('')+'</select>'+
+      '<select id="dStat" aria-label="Status"><option value="">All statuses</option>'+['On track','Blocked','Delayed','Completed'].map(function(p){return '<option'+(V.fStat===p?' selected':'')+'>'+p+'</option>';}).join('')+'</select></div></div>'+
+      '<div class="tbl"><table><thead><tr><th>Certificate</th><th>Buyer and cargo</th><th>Pay</th><th>Stages</th><th>Current stage and owner</th><th>Deadline</th><th>Status</th></tr></thead><tbody>'+tr+'</tbody></table></div></div>'+
+    '<aside class="card"><div class="card-h"><h2>Overdue actions by owner</h2></div><div class="card-b"><p class="muted" style="margin:0 0 8px;font-size:12.5px">Open steps that are not blocked and untouched for over 3 days.</p><ul style="list-style:none;margin:0;padding:0;display:grid;gap:8px">'+od+'</ul></div></aside></div>';
+}
+
+/* ---------- contracts ---------- */
+function pageContracts(){
+  var rows=S.contracts.slice().sort(function(a,b){return b.id-a.id;}).map(function(c){
+    var act='';
+    if(c.shipId)act='<button class="btn sec sm" data-ship="'+c.shipId+'">Open file</button>';
+    else if(c.status==='Draft')act='<button class="btn sec sm" data-contract-reg="'+c.id+'">Register contract</button>';
+    var st=c.shipId?'Registered':'Draft';
+    return '<tr><td class="mono"><b>'+esc(c.no)+'</b></td><td>'+esc(c.buyer)+'<div class="muted" style="font-size:12px">'+esc(c.country)+'</div></td>'+
+      '<td>'+esc(c.coffee)+', '+esc(c.grade)+'</td><td class="mono">'+c.mt+' MT</td><td class="mono">'+money(c.total,c.currency)+'</td>'+
+      '<td><span class="tag">'+c.pay+'</span> <span class="tag">'+c.inc+'</span></td><td><span class="pill '+(c.shipId?'ok':'warn')+'">'+st+'</span></td><td>'+act+'</td></tr>';
+  }).join('');
+  return '<div class="page-h"><div><h1>Sales contracts</h1><p>Registering a contract opens its shipment file and assigns the certificate number.</p></div>'+
+    (canWriteContracts()?'<button class="btn" id="newContract">New sales contract</button>':'<span class="muted">Your role has read-only access to contracts.</span>')+'</div>'+
+    '<div class="card"><div class="tbl"><table><thead><tr><th>Contract</th><th>Buyer</th><th>Coffee</th><th>Quantity</th><th>Value</th><th>Terms</th><th>Status</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+
+/* ===== UI part 2: shipment file, documents register, admin ===== */
+function pageShip(){
+  var s=getShip(V.shipId);
+  if(!s)return '<div class="empty">Shipment not found. <button class="link-btn" data-go="dashboard">Back to dashboard</button></div>';
+  var m=summ(s);
+  var kv=function(l,v){return '<div class="kv"><small>'+l+'</small><span>'+v+'</span></div>';};
+  var head='<div class="card"><div class="card-b"><div class="sf-head">'+
+    kv('Certificate no.','<b class="mono">'+esc(s.cert)+'</b>')+kv('Contract',esc(s.contractNo))+kv('Buyer',esc(s.buyer))+
+    kv('Cargo',s.mt+' MT '+esc(s.coffee)+', '+esc(s.grade)+' ('+s.bags+' bags)')+
+    kv('Value',money(s.total,s.currency)+' '+esc(s.inc))+
+    kv('Payment method','<span class="tag">'+s.pay+'</span> '+PAY_NAME[s.pay])+
+    kv('Port of discharge',esc(s.port)+', '+esc(s.country))+kv('Supplier',esc(s.supplier||'—'))+kv('Shipping line',esc(s.line))+
+    kv('ETD / deadline',fmtDate(s.etd)+' / '+fmtDate(s.deadline))+kv('Status',statusPill(m.status)+' <span class="muted">'+m.pct+'%</span>')+
+    '</div><div style="margin-top:14px">'+ribbon(m)+'</div>'+
+    '<div style="margin-top:12px;display:flex;gap:14px;flex-wrap:wrap;align-items:center">'+
+    '<span class="muted" style="font-size:12.5px">Conditions that drive the checklist:</span>'+
+    flagChk(s,'cargoLabel','Cargo label required')+flagChk(s,'loi','Empty-container LOI')+flagChk(s,'wda','Withdrawal agreement')+flagChk(s,'waybill','Waybill required')+
+    '<label class="chk muted" style="font-size:12.5px">Payment <select id="payChange" style="margin-left:6px">'+PAY.map(function(p){return '<option'+(p===s.pay?' selected':'')+'>'+p+'</option>';}).join('')+'</select></label></div></div></div>';
+  var tabs=[['stages','Stages'],['docs','All documents'],['audit','Timeline and audit'],['emails','Emails'],['notes','Alerts']]
+    .map(function(t){return '<button role="tab" data-tab="'+t[0]+'" aria-selected="'+(V.tab===t[0])+'">'+t[1]+'</button>';}).join('');
+  var body='';
+  if(V.tab==='stages')body=stagesTab(s,m);
+  else if(V.tab==='docs')body=allDocsTab(s);
+  else if(V.tab==='audit')body=auditTab(s);
+  else if(V.tab==='emails')body=emailsTab(s);
+  else body=notesTab(s,m);
+  return '<div class="page-h"><div><button class="link-btn" data-go="dashboard" style="padding-left:0;color:var(--muted)">&larr; All shipments</button><h1>'+esc(s.cert)+'</h1></div></div>'+head+
+    '<div class="tabs" role="tablist">'+tabs+'</div>'+body;
+}
+function flagChk(s,key,label){
+  return '<label class="chk" style="font-size:12.5px"><input type="checkbox" data-flag="'+key+'"'+(s[key]?' checked':'')+'> '+label+'</label>';
+}
+
+function stagesTab(s,m){
+  var rail=STAGES.map(function(st,i){
+    var inf=m.stages[i];
+    return '<button data-stage="'+st.id+'"'+(V.stage===st.id?' aria-current="true"':'')+'><span class="dot '+inf.state+'"></span><span><b>'+st.id+'. '+st.name+'</b>'+
+      '<small>'+STATE_TXT[inf.state]+(inf.total?' &middot; '+inf.done+'/'+inf.total:'')+'</small></span></button>';
+  }).join('');
+  var st=STAGES[V.stage-1],inf=m.stages[V.stage-1];
+  var docs=inf.state==='na'&&!st.docs.some(function(id){return s.docs[id].irrelevant;})?
+    '<div class="note info">This stage does not apply to a '+s.pay+' shipment.</div>':
+    st.docs.map(function(id){return docCard(s,id);}).join('');
+  return '<div class="md"><nav class="card rail" aria-label="Stages">'+rail+'</nav><div>'+
+    '<div class="card" style="margin-bottom:12px"><div class="card-b"><h2 style="font-size:18px">'+st.id+'. '+st.name+'</h2>'+
+    '<p class="muted" style="margin:4px 0 0">Owner: '+st.owner+'. Complete when: '+st.cond+'</p></div></div>'+docs+'</div></div>';
+}
+function allDocsTab(s){
+  var rows=DOCS.map(function(def){
+    var d=s.docs[def.id];
+    return '<tr><td class="mono muted">'+def.id+'</td><td>'+esc(def.name)+'</td><td>'+def.cat+'</td><td>'+COND_LABEL[def.cond]+'</td><td>'+
+      '<span class="pill '+tone(d.status)+'">'+d.status+'</span>'+(d.irrelevant?' <span class="pill warn">Review</span>':'')+'</td><td class="muted">'+ago(d.changed)+'</td></tr>';
+  }).join('');
+  return '<div class="card"><div class="tbl"><table><thead><tr><th>#</th><th>Document</th><th>Category</th><th>Applies</th><th>Status</th><th>Updated</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+function auditTab(s){
+  var items=s.audit.slice(0,80).map(function(a){
+    return '<li><span class="mono muted">'+fmtDate(a.ts)+' '+new Date(a.ts).toTimeString().slice(0,5)+'</span><span><b>'+esc(a.action)+'</b> by '+esc(a.user)+' <span class="muted">('+esc(a.role)+')</span><br>'+esc(a.detail)+'</span></li>';
+  }).join('')||'<li class="empty">No activity yet.</li>';
+  return '<div class="card"><div class="card-b"><ul class="audit">'+items+'</ul></div></div>';
+}
+function notesTab(s,m){
+  var n=[];
+  m.stages.forEach(function(inf,i){if(inf.state==='blocked')n.push(['crit','Stage '+(i+1)+' ('+STAGES[i].name+') is blocked until earlier documents are completed.']);});
+  DOCS.forEach(function(def){
+    var d=s.docs[def.id];
+    if(d.irrelevant)n.push(['warn',def.name+' no longer applies to this shipment but has progress. Review and cancel it if not needed.']);
+    if(d.status==='Rejected'||d.status==='Revision Required')n.push(['crit',def.name+' needs revision. '+(d.remarks||'')]);
+    if(d.status==='Pending External Response'&&daysSince(d.changed)>2)n.push(['warn','Still waiting for a response on '+def.name+' ('+ago(d.changed)+').']);
+  });
+  if(s.deadline&&new Date(s.deadline).getTime()+DAY<Date.now()&&m.status!=='Completed')n.push(['crit','The contract shipment deadline of '+fmtDate(s.deadline)+' has passed.']);
+  var items=n.map(function(x){return '<div class="note '+(x[0]==='crit'?'hard':'soft')+'" style="margin-bottom:8px">'+esc(x[1])+'</div>';}).join('')||'<div class="empty">No alerts for this shipment.</div>';
+  return '<div class="card"><div class="card-b">'+items+'</div></div>';
+}
+
+/* document card */
+function docCard(s,id){
+  var def=DEFS[id],d=s.docs[id];
+  if(d.status==='Not Required'&&!d.irrelevant){
+    return '<div class="doc nr"><div class="doc-top"><b>'+esc(def.name)+'</b><span class="pill">Not Required</span></div><div class="doc-meta">'+COND_LABEL[def.cond]+'. Hidden from the checklist for this shipment.</div></div>';
+  }
+  var nx=nextStep(s,id),notes='',btns='';
+  if(d.irrelevant)notes+='<div class="note soft">This document no longer applies after a condition changed, but it already has progress. It was kept for review.</div>';
+  if(d.status==='Rejected'||d.status==='Revision Required')notes+='<div class="note hard">'+d.status+(d.remarks?': '+esc(d.remarks):'')+'</div>';
+  if(nx){
+    var bl=nx.revise?[]:blocksFor(s,id,nx.idx);
+    bl.forEach(function(b){notes+='<div class="note '+(b.mode==='hard'?'hard':'soft')+'"><b>'+(b.mode==='hard'?'Blocked':'Warning')+':</b>&nbsp;'+esc(b.rule.msg)+' <span style="opacity:.75">Needs: '+esc(b.unmet.join(', '))+'.</span></div>';});
+    var hard=bl.some(function(b){return b.mode==='hard';}),okRole=nx.roles.indexOf(S.role)>=0;
+    var title=!okRole?'Only '+nx.roles.join(' or ')+' can do this':hard?'Blocked by an earlier document':'';
+    btns+='<button class="btn sm" data-act="'+id+'" data-kind="'+(nx.revise?'revise':'next')+'"'+((hard||!okRole)?' disabled':'')+' title="'+esc(title)+'">'+esc(nx.label)+'</button>';
+  }
+  if(canReject(s,id)){
+    btns+='<button class="btn danger sm" data-act="'+id+'" data-kind="reject">Reject</button><button class="btn sec sm" data-act="'+id+'" data-kind="revreq">Request revision</button>';
+  }
+  if(def.src.indexOf('System')===0&&stepIdx(def,d.status)>=1&&d.status!=='Rejected')btns+='<button class="btn sec sm" data-preview="'+id+'">View document</button>';
+  if(EM_OF_DOC[id]&&emApplies(s,emDef(EM_OF_DOC[id]))&&d.status!=='Pending Preparation'||EM_OF_DOC[id]&&emApplies(s,emDef(EM_OF_DOC[id]))&&id===4)btns+='<button class="btn sec sm" data-email="'+EM_OF_DOC[id]+'">Email</button>';
+  (s.approvals||[]).filter(function(x){return x.docId===id;}).slice(-1).forEach(function(a){notes+='<div class="note soft"><b>Buyer '+(a.decision==='approved'?'approval':'corrections')+':</b>&nbsp;'+esc(a.by)+' ('+esc(a.email)+'), v'+a.version+', '+esc(fmtDate(a.ts))+(a.comment?'. '+esc(a.comment):'')+'</div>';});
+  if(APPROVE_DOC.e3===id||APPROVE_DOC.e6===id){if(d.status==='Pending External Response')btns+='<button class="btn sec sm" data-buyer-link="'+buyerToken(s,id)+'">Open buyer approval page</button>';}
+  var ver=d.version>1?' <span class="tag">v'+d.version+'</span>':'';
+  return '<div class="doc"><div class="doc-top"><b>'+id+'. '+esc(def.name)+ver+'</b><span class="pill '+tone(d.status)+'">'+d.status+'</span></div>'+
+    '<div class="doc-meta"><span class="tag">'+def.src+'</span><span>'+COND_LABEL[def.cond]+'</span><span>Owner: '+def.owner+'</span><span>Updated '+ago(d.changed)+'</span>'+(d.file?'<span class="mono">'+esc(d.file)+'</span>':'')+'</div>'+
+    notes+(btns?'<div class="doc-act">'+btns+'</div>':'')+'</div>';
+}
+
+/* ---------- documents register ---------- */
+function pageDocuments(){
+  var cats=[];DOCS.forEach(function(d){if(cats.indexOf(d.cat)<0)cats.push(d.cat);});
+  var q=V.dq.toLowerCase();
+  var rows=DOCS.filter(function(d){return (!q||d.name.toLowerCase().indexOf(q)>=0)&&(!V.dcat||d.cat===V.dcat)&&(!V.dstat||d.src===V.dstat);}).map(function(d){
+    var rule=BLOCK_RULES.filter(function(r){return r.doc===d.id;}).length;
+    return '<tr><td class="mono muted">'+d.id+'</td><td><b>'+esc(d.name)+'</b></td><td>'+d.cat+'</td><td><span class="tag">'+d.src+'</span></td><td>'+COND_LABEL[d.cond]+'</td><td>'+d.owner+'</td><td class="mono">'+rule+'</td></tr>';
+  }).join('')||'<tr><td colspan="7" class="empty">No documents match.</td></tr>';
+  var srcs=['System-Generated','External Attachment','Buyer-Provided','Buyer-Approved'];
+  return '<div class="page-h"><div><h1>Document register</h1><p>The master list the checklist is built from. '+DOCS.length+' document types.</p></div></div>'+
+    '<div class="filters"><input id="docQ" type="search" placeholder="Search documents" value="'+esc(V.dq)+'" aria-label="Search documents">'+
+    '<select id="docCat" aria-label="Category"><option value="">All categories</option>'+cats.map(function(c){return '<option'+(V.dcat===c?' selected':'')+'>'+c+'</option>';}).join('')+'</select>'+
+    '<select id="docSrc" aria-label="Source"><option value="">All sources</option>'+srcs.map(function(c){return '<option'+(V.dstat===c?' selected':'')+'>'+c+'</option>';}).join('')+'</select></div>'+
+    '<div class="card"><div class="tbl"><table><thead><tr><th>#</th><th>Document</th><th>Category</th><th>Source</th><th>Applies to</th><th>Owner</th><th>Block rules</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+
+/* ---------- admin: rule editor ---------- */
+function pageAdmin(){
+  var rows=BLOCK_RULES.map(function(r){
+    var mode=modeOf(r);
+    return '<tr><td class="mono">'+r.id+'</td><td>'+esc(DEFS[r.doc].name)+(r.when?' <span class="tag">'+(PAY.indexOf(r.when)>=0?r.when+' only':COND_LABEL[r.when])+'</span>':'')+'</td>'+
+      '<td>'+r.req.map(function(q){return esc(DEFS[q[0]].name)+' &ge; '+q[1];}).join('<br>')+'</td><td>'+esc(r.msg)+'</td>'+
+      '<td><select data-rule="'+r.id+'" aria-label="Block mode for '+r.id+'"><option value="hard"'+(mode==='hard'?' selected':'')+'>Hard block</option><option value="soft"'+(mode==='soft'?' selected':'')+'>Warning</option></select></td></tr>';
+  }).join('');
+  return '<div class="page-h"><div><h1>Rules</h1><p>Each prerequisite either stops the next step (hard block) or asks an Export Manager to confirm (warning). Changes apply immediately to all shipments.</p></div></div>'+
+    '<div class="card"><div class="tbl"><table><thead><tr><th>Rule</th><th>Before this document moves forward</th><th>Requires</th><th>Message shown</th><th>Mode</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+
+/* ===== UI part 3: modals, events, init ===== */
+function modalHtml(){
+  var m=V.modal;
+  return '<div class="modal-bg" id="mbg"><div class="modal'+(m.wide?' wide':'')+'" role="dialog" aria-modal="true" aria-labelledby="mt"><div class="modal-h"><h2 id="mt">'+esc(m.title)+'</h2>'+
+    '<button class="btn sec sm" data-close="1" aria-label="Close">Close</button></div><div class="modal-b">'+m.body+'</div>'+(m.foot?'<div class="modal-f">'+m.foot+'</div>':'')+'</div></div>';
+}
+function openModal(m){V.modal=m;render();var f=document.querySelector('.modal input,.modal select,.modal textarea');if(f)f.focus();}
+function closeModal(){V.modal=null;render();}
+function val(id){var e=document.getElementById(id);return e?e.value.trim():'';}
+
+/* new contract */
+function contractModal(){
+  var bo=BUYERS.map(function(b,i){return '<option value="'+i+'">'+esc(b.name)+'</option>';}).join('');
+  var sel=function(id,arr){return '<select id="'+id+'">'+arr.map(function(x){return '<option>'+x+'</option>';}).join('')+'</select>';};
+  var today=new Date().toISOString().slice(0,10);
+  var maxN=0;S.contracts.forEach(function(c){var m=/(\d+)$/.exec(c.no);if(m)maxN=Math.max(maxN,+m[1]);});
+  var no='SC-2026-'+('000'+(maxN+1)).slice(-3);
+  openModal({title:'New sales contract',wide:true,body:'<div class="form">'+
+    '<div class="fld"><label for="c_no">Contract number</label><input id="c_no" value="'+no+'"></div>'+
+    '<div class="fld"><label for="c_buyer">Buyer</label><select id="c_buyer">'+bo+'</select></div>'+
+    '<div class="fld"><label for="c_coffee">Coffee</label>'+sel('c_coffee',COFFEES)+'</div>'+
+    '<div class="fld"><label for="c_grade">Grade</label>'+sel('c_grade',GRADES)+'</div>'+'<div class="fld"><label for="c_supplier">Supplier (origin)</label>'+sel('c_supplier',SUPPLIERS)+'</div>'+
+    '<div class="fld"><label for="c_mt">Quantity (metric tons)</label><input id="c_mt" type="number" min="0" step="0.1" value="19.2"></div>'+
+    '<div class="fld"><label for="c_price">Price (USD per MT)</label><input id="c_price" type="number" min="0" value="5200"></div>'+
+    '<div class="fld"><label for="c_pay">Payment method</label>'+sel('c_pay',PAY)+'</div>'+
+    '<div class="fld"><label for="c_inc">Incoterm</label>'+sel('c_inc',INCOTERMS)+'</div>'+
+    '<div class="fld"><label for="c_date">Contract date</label><input id="c_date" type="date" value="'+today+'"></div>'+
+    '<div class="fld"><label for="c_to">Latest shipment date</label><input id="c_to" type="date"></div>'+
+    '<div class="sect">Conditions that add or remove documents</div>'+
+    '<label class="chk"><input id="c_cl" type="checkbox"> Cargo label required</label><label class="chk"><input id="c_loi" type="checkbox"> Empty-container LOI</label>'+
+    '<label class="chk"><input id="c_wda" type="checkbox"> Withdrawal agreement</label><label class="chk"><input id="c_wb" type="checkbox"> Waybill required</label>'+
+    '<div class="fld full"><span class="err" id="c_err" role="alert"></span></div></div>',
+    foot:'<button class="btn sec" data-close="1">Cancel</button><button class="btn" id="saveContract">Save contract</button>'});
+}
+function saveContract(){
+  var err=document.getElementById('c_err'),no=val('c_no'),mt=parseFloat(val('c_mt')),price=parseFloat(val('c_price')),to=val('c_to');
+  var b=BUYERS[+val('c_buyer')];
+  if(!no){err.textContent='Enter a contract number.';return;}
+  if(S.contracts.some(function(c){return c.no===no;})){err.textContent='That contract number already exists.';return;}
+  if(!(mt>0)||!(price>0)){err.textContent='Quantity and price must be greater than zero.';return;}
+  if(!to){err.textContent='Enter the latest shipment date.';return;}
+  var c={id:S.nextContractId++,no:no,buyer:b.name,address:b.address,country:b.country,port:b.port,coffee:val('c_coffee'),grade:val('c_grade'),supplier:val('c_supplier'),
+    mt:mt,bags:Math.round(mt*1000/60),price:price,total:mt*price,currency:'USD',pay:val('c_pay'),inc:val('c_inc'),from:'',to:to,date:val('c_date'),
+    cargoLabel:document.getElementById('c_cl').checked,loi:document.getElementById('c_loi').checked,wda:document.getElementById('c_wda').checked,
+    waybill:document.getElementById('c_wb').checked,status:'Draft',shipId:null,history:[]};
+  contractLog(c,S.role,'Contract created');
+  S.contracts.push(c);save();V.modal=null;toast('Contract '+no+' saved. Register it to open the shipment file.');render();
+}
+function registerModal(id){
+  var c=S.contracts.filter(function(x){return x.id===id;})[0];
+  openModal({title:'Register '+c.no,body:'<p style="margin:0">Registering opens a shipment file for <b>'+esc(c.buyer)+'</b> and assigns the next certificate number. In this demo, uploads record the file name only.</p>'+
+    '<div class="fld"><label for="r_file">Registered contract file name</label><input id="r_file" value="registered-'+esc(c.no.toLowerCase())+'.pdf"></div><span class="err" id="r_err" role="alert"></span>',
+    foot:'<button class="btn sec" data-close="1">Cancel</button><button class="btn" data-reg-go="'+id+'">Upload and open shipment file</button>'});
+}
+
+/* document actions */
+function runAct(shipId,docId,kind,o){
+  var s=getShip(shipId),r=doAct(s,docId,kind,o);
+  if(r.ok){V.modal=null;render();toast(DEFS[docId].name+': updated to '+s.docs[docId].status+'.');return;}
+  if(r.confirm){softModal(shipId,docId,r.soft);return;}
+  V.modal=null;render();toast(r.msg);
+}
+function softModal(shipId,docId,soft){
+  var isMgr=S.role==='Export Manager';
+  openModal({title:'Confirm before continuing',body:soft.map(function(b){return '<div class="note soft"><b>Warning:</b>&nbsp;'+esc(b.rule.msg)+' Needs: '+esc(b.unmet.join(', '))+'.</div>';}).join('')+
+    (isMgr?'<div class="fld"><label for="s_reason">Reason for continuing</label><input id="s_reason" placeholder="e.g. buyer agreed by email"></div>':
+    '<div class="note info">Only an Export Manager can confirm this warning. Switch role in the top bar or ask your manager.</div>'),
+    foot:'<button class="btn sec" data-close="1">Cancel</button>'+(isMgr?'<button class="btn" data-soft-go="'+shipId+':'+docId+'">Confirm and continue</button>':'')});
+}
+function fileModal(shipId,docId,label){
+  var def=DEFS[docId];
+  openModal({title:label,body:'<p style="margin:0" class="muted">Demo upload: only the file name is stored.</p><div class="fld"><label for="u_file">File name</label><input id="u_file" value="'+esc(def.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-$/,''))+'.pdf"></div>',
+    foot:'<button class="btn sec" data-close="1">Cancel</button><button class="btn" data-file-go="'+shipId+':'+docId+'">Save</button>'});
+}
+function reasonModal(shipId,docId,kind){
+  openModal({title:kind==='reject'?'Reject '+DEFS[docId].name:'Request revision',body:'<div class="fld"><label for="x_reason">Reason (shown on the document and in the audit trail)</label><textarea id="x_reason" placeholder="What needs to change?"></textarea></div><span class="err" id="x_err" role="alert"></span>',
+    foot:'<button class="btn sec" data-close="1">Cancel</button><button class="btn danger" data-reason-go="'+shipId+':'+docId+':'+kind+'">'+(kind==='reject'?'Reject':'Send back')+'</button>'});
+}
+
+/* document preview: real layouts built from the shipment file */
+function contractOf(s){return S.contracts.filter(function(c){return c.id===s.contractId;})[0]||{};}
+function lnk(a,b){return '<tr><th style="width:34%">'+a+'</th><td>'+b+'</td></tr>';}
+function payClause(s){
+  if(s.pay==='LC')return 'By irrevocable Letter of Credit at sight, opened by the Buyer through a first-class bank in favour of the Seller after approval of the pre-shipment sample, and payable against presentation of the documents stated in the credit.';
+  if(s.pay==='CAD')return 'Cash against documents: payment is made on presentation of the shipping documents through the Buyer’s bank, against the Seller’s undertaking letter.';
+  return 'By telegraphic transfer to the Seller’s bank account. The payment advice must be received and verified before the banking permit is processed.';
+}
+function bagLines(s){return ['SHEBA BEANS','PRODUCT OF ETHIOPIA',s.coffee.toUpperCase()+' · '+s.grade.toUpperCase(),'CONTRACT '+s.contractNo,'CERT '+s.cert,'NET WEIGHT 60 KG','DESTINATION: '+s.port.toUpperCase(),'BAG 1 / '+s.bags];}
+function paperHtml(s,def,d){
+  var c=contractOf(s),cargo=s.mt+' MT ('+s.bags+' bags of 60 kg net)',dt=fmtDate(d.changed),buyer=esc(s.buyer)+'<br>'+esc(s.address)+', '+esc(s.country);
+  var seller='Sheba Beans<br>Addis Ababa, Ethiopia &middot; Portland, USA';
+  var sign='<div style="display:flex;justify-content:space-between;gap:20px;margin-top:34px"><div style="flex:1;border-top:1px solid #8b8167;padding-top:4px;font-size:12px">For the Seller<br>Sheba Beans</div><div style="flex:1;border-top:1px solid #8b8167;padding-top:4px;font-size:12px">For the Buyer<br>'+esc(s.buyer)+'</div></div>';
+  var fine='<p style="font-size:11.5px;color:#6a604c;margin:12px 0 0">Prepared from shipment file '+esc(s.cert)+'. Document version '+d.version+', '+esc(d.status)+'.</p>';
+  var id=def.id,h='';
+  if(id===1){
+    h='<h3>SALES CONTRACT</h3><p style="text-align:center;margin:0 0 12px">No. '+esc(s.contractNo)+' &middot; Date '+fmtDate(c.date||d.changed)+'</p><table>'+
+      lnk('Seller',seller)+lnk('Buyer',buyer)+lnk('Commodity','Ethiopian '+esc(s.coffee)+' coffee, '+esc(s.grade)+', crop 2026')+lnk('Origin / supplier',esc(s.supplier||'')+', Ethiopia')+lnk('Quantity',cargo)+
+      lnk('Packing','New jute bags of 60 kg net, marked as approved by the Buyer')+lnk('Price',s.currency+' '+NF.format(s.price)+' per metric ton, '+esc(s.inc)+' '+(s.inc==='FOB'?'Djibouti':esc(s.port)))+
+      lnk('Total value',money(s.total,s.currency))+lnk('Shipment period',(c.from?fmtDate(c.from)+' to ':'Latest ')+fmtDate(s.deadline))+lnk('Port of destination',esc(s.port)+', '+esc(s.country))+
+      lnk('Payment',payClause(s))+lnk('Quality','Pre-shipment sample to be approved by the Buyer. Inspection and certification by the Ethiopian Coffee and Tea Authority.')+
+      lnk('Documents','Commercial invoice, packing list, bill of lading, certificate of origin, quality certificate')+'</table>'+sign;
+  }else if(id===22){
+    h='<h3>COMMERCIAL INVOICE</h3><p style="text-align:center;margin:0 0 12px">Invoice no. INV-'+esc(s.cert.slice(-9))+' &middot; Date '+dt+'</p><table>'+
+      lnk('Exporter',seller)+lnk('Consignee',buyer)+lnk('Origin / supplier',esc(s.supplier||'')+', Ethiopia')+lnk('Contract / certificate',esc(s.contractNo)+' / '+esc(s.cert))+lnk('Terms',esc(s.inc)+' &middot; '+PAY_NAME[s.pay])+lnk('Port of discharge',esc(s.port)+', '+esc(s.country))+'</table>'+
+      '<table style="margin-top:10px"><tr><th>Description</th><th>Bags</th><th>Net kg</th><th>Unit price / MT</th><th>Amount</th></tr><tr><td>Ethiopian '+esc(s.coffee)+', '+esc(s.grade)+', not roasted, not decaffeinated (HS 0901.11)</td><td>'+s.bags+'</td><td>'+NF.format(s.mt*1000)+'</td><td>'+s.currency+' '+NF.format(s.price)+'</td><td>'+s.currency+' '+NF.format(s.total)+'</td></tr>'+
+      '<tr><th colspan="4" style="text-align:right">Total '+esc(s.inc)+'</th><th>'+s.currency+' '+NF.format(s.total)+'</th></tr></table>'+
+      '<p style="margin:12px 0 0"><b>Beneficiary bank:</b> '+CO_BANK+'</p><p style="margin:6px 0 0;font-size:12px">We certify that this invoice is true and correct and that the goods are of Ethiopian origin.</p>'+
+      '<div style="margin-top:30px;width:50%;border-top:1px solid #8b8167;padding-top:4px;font-size:12px">Authorised signature<br>Sheba Beans</div>';
+  }else if(id===5){
+    var bi=bagLines(s).map(function(l,i){return '<div style="'+(i===0?'font-size:15px;font-weight:700;letter-spacing:2px;':'')+'padding:2px 0">'+esc(l)+'</div>';}).join('');
+    h='<h3>BAG MARK DRAFT</h3><p style="text-align:center;margin:0 0 12px">For buyer approval &middot; '+esc(s.cert)+'</p>'+
+      '<div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start"><div style="flex:0 0 250px;border:2px solid #1e1a14;background:#e7d9b8;padding:16px 12px;text-align:center;font-family:Consolas,monospace;font-size:12.5px;line-height:1.35">'+bi+'</div>'+
+      '<div style="flex:1;min-width:230px"><table>'+lnk('Buyer',esc(s.buyer))+lnk('Bag','Jute, 60 kg net')+lnk('Quantity',s.bags+' bags')+lnk('Print','Black ink, one side, 25 cm x 40 cm')+lnk('Source','Buyer’s bag mark instructions, received')+'</table></div></div>'+
+      '<p style="margin:14px 0 0;font-size:12.5px">Printing on the jute bags starts only after the buyer approves this draft.</p>';
+  }else if(id===17){
+    h='<h3>SHIPPING INSTRUCTION</h3><p style="text-align:center;margin:0 0 12px">To '+esc(s.line)+' &middot; Date '+dt+'</p><table>'+
+      lnk('Shipper',seller+'<br>Supplier: '+esc(s.supplier||''))+lnk('Consignee',buyer)+lnk('Notify party','Same as consignee')+lnk('Port of loading','Djibouti')+lnk('Port of discharge',esc(s.port)+', '+esc(s.country))+
+      lnk('Vessel / voyage','To be advised by the line')+lnk('Planned departure',fmtDate(s.etd))+lnk('Containers',Math.ceil(s.mt/19.2)+' x 20 ft container (container and seal numbers to follow)')+
+      lnk('Description of goods',esc(s.bags)+' jute bags of Ethiopian '+esc(s.coffee)+' coffee, '+esc(s.grade)+', 60 kg net each. Total net weight '+NF.format(s.mt*1000)+' kg.')+
+      lnk('Marks and numbers',bagLines(s).slice(0,5).map(esc).join('<br>'))+lnk('Freight',(s.inc==='FOB'?'Collect':'Prepaid'))+lnk('B/L',esc('3 originals and 3 copies, consignee '+s.buyer))+lnk('References','Contract '+esc(s.contractNo)+', certificate '+esc(s.cert))+'</table>';
+  }
+  return h?h+fine:'';
+}
+function previewModal(shipId,docId){
+  var s=getShip(shipId),def=DEFS[docId],d=s.docs[docId];
+  var row=function(a,b){return '<tr><th style="width:36%">'+a+'</th><td>'+b+'</td></tr>';};
+  var rows=row('Certificate no.',esc(s.cert))+row('Contract no.',esc(s.contractNo))+row('Buyer',esc(s.buyer)+'<br>'+esc(s.address))+
+    row('Commodity',esc(s.coffee)+', '+esc(s.grade))+row('Quantity',s.mt+' MT in '+s.bags+' bags of 60 kg')+
+    row('Price',s.currency+' '+NF.format(s.price)+' per MT '+esc(s.inc))+row('Total value',money(s.total,s.currency))+
+    row('Payment',PAY_NAME[s.pay])+row('Port of discharge',esc(s.port)+', '+esc(s.country))+row('Supplier',esc(s.supplier||'—'))+row('Shipping line',esc(s.line))+row('Latest shipment',fmtDate(s.deadline));
+  var real=paperHtml(s,def,d),lh='<div class="lh"><div><b>Sheba Beans</b><br>Addis Ababa, Ethiopia &middot; Portland, USA</div><div style="text-align:right">Ref '+esc(s.cert)+'<br>Version '+d.version+' &middot; '+esc(d.status)+'</div></div>';
+  var body=real?'<div class="paper">'+lh+real+'</div>':
+    '<div class="paper">'+lh+'<h3>'+esc(def.name.toUpperCase())+'</h3><p style="text-align:center;margin:0 0 14px;font-size:12px">Generated from the shipment file. Data below is reused on every related document.</p><table>'+rows+'</table></div><p class="muted" style="margin:0;font-size:12.5px">The full layout for this document is not built yet.</p>';
+  openModal({title:def.name,wide:true,body:body,foot:'<button class="btn sec" data-close="1">Close</button>'+(real?'<button class="btn" data-print="1">Print / Save as PDF</button>':'')});
+}
+
+/* conditional recalculation */
+function applyCondition(s,label){
+  var msgs=recalc(s);
+  logShip(s,S.role,null,'Condition changed',label+(msgs.length?'. '+msgs.join(' '):'. No document changes.'));
+  save();render();toast(msgs.length?msgs[0]+(msgs.length>1?' (+'+(msgs.length-1)+' more, see Timeline)':''):'No document changes.');
+}
+var FLAG_NAMES={cargoLabel:'Cargo label required',loi:'Empty-container LOI',wda:'Withdrawal agreement',waybill:'Waybill required'};
+
+
+/* ===== Theme, sign-in (mock OTP), and email notifications ===== */
+var THEME_KEY='rr_theme',AUTH_KEY='rr_auth';
+function sysDark(){try{return window.matchMedia('(prefers-color-scheme: dark)').matches;}catch(e){return false;}}
+function curTheme(){var a=document.documentElement.getAttribute('data-theme');return a||(sysDark()?'dark':'light');}
+function applyTheme(m){document.documentElement.setAttribute('data-theme',m);lsSet(THEME_KEY,m);}
+function toggleTheme(){applyTheme(curTheme()==='dark'?'light':'dark');render();}
+(function(){var m=lsGet(THEME_KEY);if(m==='light'||m==='dark')document.documentElement.setAttribute('data-theme',m);})();
+function themeBtn(){var d=curTheme()==='dark';return '<button class="tbtn" id="themeBtn" aria-label="Switch to '+(d?'light':'dark')+' mode">'+(d?'&#9728; Light':'&#9790; Dark')+'</button>';}
+
+var EMAIL_OF={'Hana Tadesse':'hana.tadesse','Selam Tesfaye':'selam.tesfaye','Abel Mekonnen':'abel.mekonnen','Rahel Bekele':'rahel.bekele','System Admin':'admin','Management':'management'};
+function userMail(role){return (EMAIL_OF[USERS[role]]||'user')+'@shebabeans.example';}
+var LG={step:1,role:'Documentation Officer',code:'',err:'',sentAt:''};
+function authed(){return true;}
+function loginPage(){
+  var opts=ROLES.map(function(r){return '<option value="'+esc(r)+'"'+(r===LG.role?' selected':'')+'>'+esc(USERS[r])+' · '+esc(r)+'</option>';}).join('');
+  var head='<div class="lg-top">'+themeBtn()+'</div><div class="lg-wrap"><div class="lg-card"><div class="brand" style="color:var(--fg)"><svg width="30" height="30" viewBox="0 0 26 26" fill="none" aria-hidden="true"><circle cx="13" cy="13" r="12" stroke="#BE8F3E" stroke-width="1.4"/><path d="M13 4C9 8 9 12 13 22 17 12 17 8 13 4Z" fill="#BE8F3E" opacity=".85"/></svg><div><b>Sheba Beans Export ERP</b><small style="color:var(--muted)">Secure sign-in</small></div></div>';
+  if(LG.step===1)return head+'<h1>Sign in</h1><p class="muted" style="margin:0">Choose your account. We send a one-time code to your work email.</p>'+
+    '<div class="fld"><label for="lg_user">Account</label><select id="lg_user">'+opts+'</select></div>'+
+    '<button class="btn" id="sendCode">Email me a code</button></div></div>';
+  return head+'<h1>Enter your code</h1><p class="muted" style="margin:0">We emailed a 6-digit code to <b>'+esc(userMail(LG.role))+'</b>. It is valid for 10 minutes.</p>'+
+    '<div class="inbox"><span class="muted">Demo inbox, delivered '+esc(LG.sentAt)+'</span><br>Your Sheba Beans sign-in code is<b class="code">'+LG.code+'</b></div>'+
+    '<div class="fld"><label for="lg_code">6-digit code</label><input id="lg_code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000"><span class="err" id="lg_err" role="alert">'+esc(LG.err)+'</span></div>'+
+    '<button class="btn" id="verifyCode">Verify and sign in</button>'+
+    '<div style="display:flex;gap:14px;justify-content:space-between"><button class="link-btn" style="color:var(--muted)" id="resendCode">Send a new code</button><button class="link-btn" style="color:var(--muted)" id="backLogin">Use another account</button></div></div></div>';
+}
+function newCode(){LG.code=String(Math.floor(100000+Math.random()*900000));LG.sentAt=new Date().toTimeString().slice(0,5);LG.err='';}
+
+/* ---- email notifications (11 from the guideline) ---- */
+var CO_BANK='Demo Bank of Ethiopia, Addis Ababa Branch, SWIFT DEMOETAA, Account 1000 0000 0000';
+var EMAILS=[
+ {k:'e1',n:'Registered Sales Contract to buyer',to:'buyer',docs:[2]},
+ {k:'e2',n:'Request for Bag Mark Instructions',to:'buyer',docs:[4]},
+ {k:'e3',n:'Bag Mark Draft for approval',to:'buyer',docs:[5]},
+ {k:'e4',n:'Approved Bag Mark to supplier',to:'supplier',docs:[6,7]},
+ {k:'e5',n:'Sample ready notification',to:'buyer',docs:[8]},
+ {k:'e6',n:'Sample approval reminder',to:'buyer',docs:[9]},
+ {k:'e7',n:'LC opening reminder',to:'buyer',docs:[10],when:'LC'},
+ {k:'e8',n:'Draft LC review / amendment request',to:'buyer',docs:[11],when:'LC'},
+ {k:'e9',n:'Shipping booking request',to:'line',docs:[16,17]},
+ {k:'e10',n:'Booking confirmation notification',to:'buyer',docs:[25]},
+ {k:'e11',n:'Loading schedule notification',to:'buyer',docs:[29,30]}
+];
+var EM_OF_DOC={2:'e1',4:'e2',5:'e3',6:'e4',8:'e5',9:'e6',10:'e7',11:'e8',16:'e9',25:'e10',29:'e11'};
+function emDef(k){return EMAILS.filter(function(e){return e.k===k;})[0];}
+function buyerMail(s){return 'import.desk@'+s.buyer.toLowerCase().replace(/[^a-z0-9]+/g,'').slice(0,18)+'.example';}
+function emailFor(s,k){
+  var def=emDef(k),me=USERS[S.role],ref=s.cert+' / '+s.contractNo,sig='\n\nBest regards,\n'+me+'\nSheba Beans, Addis Ababa, Ethiopia',
+    cargo=s.mt+' MT '+s.coffee+', '+s.grade+' ('+s.bags+' bags)',to='',sub='',b='';
+  if(def.to==='buyer')to=buyerMail(s);else if(def.to==='supplier')to='ops@'+(s.supplier||'supplier').toLowerCase().replace(/[^a-z]/g,'').slice(0,20)+'.example';else to='bookings@'+s.line.toLowerCase().replace(/[^a-z]/g,'')+'.example';
+  var hi='Dear '+(def.to==='supplier'?esc(s.supplier||'')+' team':def.to==='line'?'Booking Team':'Sir or Madam')+',\n\n';
+  if(k==='e1'){sub='Registered sales contract '+s.contractNo+' ('+s.cert+')';b=hi+'Please find attached the registered sales contract '+s.contractNo+' for '+cargo+', '+s.inc+' '+s.port+', total value '+money(s.total,s.currency)+'.\n\nOur shipment reference is '+s.cert+'. Please quote it in all correspondence.'+sig;}
+  if(k==='e2'){sub='Bag mark instructions needed: '+ref;b=hi+'To prepare the coffee for shipment '+s.cert+', please send your bag mark instructions for '+cargo+'.\n\nThe latest shipment date is '+fmtDate(s.deadline)+', so an early reply keeps us on schedule.'+sig;}
+  if(k==='e3'){sub='Bag mark draft for your approval: '+s.cert;b=hi+'Attached is the bag mark draft for '+cargo+', prepared from your instructions.\n\nPlease reply with your approval or the corrections you need. We will not start printing on the jute bags until we have your approval.'+sig;}
+  if(k==='e4'){sub='Approved bag mark and preparation instruction: '+s.cert;b=hi+'The buyer has approved the bag mark. Please prepare and pack '+cargo+' using the attached approved version only and the production instruction.\n\nPlease confirm receipt and tell us when preparation is complete.'+sig;}
+  if(k==='e5'){sub='Sample ready for '+s.cert;b=hi+'The coffee for '+s.cert+' has been cleaned and prepared. A sample can now be drawn. Please tell us whether you will collect it or whether we should dispatch it to you.'+sig;}
+  if(k==='e6'){sub='Reminder: sample approval for '+s.cert;b=hi+'We dispatched the sample for '+s.cert+' and are waiting for your approval. Our loading plan depends on it.\n\nPlease let us know the result or if you need anything else from us.'+sig;}
+  if(k==='e7'){sub='Please open the Letter of Credit: '+ref;b=hi+'The sample is approved. Please open the Letter of Credit for contract '+s.contractNo+' ('+money(s.total,s.currency)+').\n\nOur bank details:\n'+CO_BANK+'\n\nPlease send us the draft LC as soon as your bank issues it.'+sig;}
+  if(k==='e8'){sub='Draft LC review: amendments needed ('+s.cert+')';b=hi+'We reviewed the draft LC against contract '+s.contractNo+' and need these amendments:\n\n[list the discrepancies found]\n\nPlease have your bank amend the LC and send the corrected draft.'+sig;}
+  if(k==='e9'){sub='Booking request: '+s.cert+', '+s.port;b=hi+'Please book '+cargo+' for shipment to '+s.port+', '+s.country+' (nominated by the buyer). Shipping instruction attached.\n\nPlease confirm the booking reference and the empty container release arrangement.'+sig;}
+  if(k==='e10'){sub='Booking confirmed: '+s.cert;b=hi+'The booking for '+s.cert+' is confirmed with '+s.line+'. The confirmation is attached.\n\nWe will inform you of the loading schedule once the empty container is collected.'+sig;}
+  if(k==='e11'){sub='Loading schedule: '+s.cert;b=hi+'Loading of '+cargo+' is planned for [date and time] at the supplier’s warehouse.'+(s.cargoLabel?'\n\nCargo labels have been prepared and sent to the warehouse.':'')+'\n\nWe will share the container and seal numbers after loading.'+sig;}
+  if(APPROVE_DOC[k]&&s.docs[APPROVE_DOC[k]]){b=b.replace(/\n\nBest regards,/,'\n\nReview and respond online (no login needed):\n'+buyerLink(s,APPROVE_DOC[k])+'\n\nBest regards,');}
+  return {to:to,cc:userMail(S.role),subject:sub,body:b};
+}
+function emApplies(s,def){return !def.when||def.when===s.pay;}
+function canEmail(){return S.role==='Documentation Officer'||S.role==='Export Manager';}
+function docPills(s,ids){return ids.filter(function(id){return isReq(s,id);}).map(function(id){var d=s.docs[id],ready=d.status!=='Pending Preparation';return '<span class="att'+(ready?'':' warn')+'">&#128206; '+esc(DEFS[id].name)+(ready?'':' (not prepared yet)')+'</span>';}).join('');}
+function emailsTab(s){
+  s.emails=s.emails||{};
+  var cards=EMAILS.map(function(def,i){
+    var sent=s.emails[def.k],ap=emApplies(s,def);
+    if(!ap)return '<div class="doc nr"><div class="doc-top"><b>'+(i+1)+'. '+esc(def.n)+'</b><span class="pill">Not applicable</span></div><div class="doc-meta">Applies to '+def.when+' shipments only. This shipment pays by '+s.pay+'.</div></div>';
+    return '<div class="doc"><div class="doc-top"><b>'+(i+1)+'. '+esc(def.n)+'</b><span class="pill '+(sent?'ok':'')+'">'+(sent?'Sent '+ago(sent.ts):'Not sent')+'</span></div>'+
+      '<div class="doc-meta"><span>To: '+esc(sent?sent.to:emailFor(s,def.k).to)+'</span>'+(sent?'<span>By '+esc(sent.by)+'</span>':'')+'</div>'+
+      '<div>'+docPills(s,def.docs)+'</div><div class="doc-act"><button class="btn sm'+(sent?' sec':'')+'" data-email="'+def.k+'">'+(sent?'Review and send again':'Review and send')+'</button></div></div>';
+  }).join('');
+  return '<p class="muted" style="margin:0 0 10px">Every email is opened for review first. Fields are pre-filled from the shipment file and nothing is sent until you press Send.</p><div class="docs">'+cards+'</div>';
+}
+function emailModal(shipId,k){
+  var s=getShip(shipId),def=emDef(k),m=emailFor(s,k),can=canEmail();
+  var row=function(l,id,v){return '<div class="mrow"><label for="'+id+'" class="muted" style="font-size:12px">'+l+'</label><input id="'+id+'" value="'+esc(v)+'"'+(can?'':' readonly')+' style="background:var(--surface-2);border:1px solid var(--line);border-radius:7px;padding:7px 10px"></div>';};
+  openModal({title:def.n,wide:true,body:
+    (can?'':'<div class="note info" style="margin-bottom:10px">Preview only. Documentation Officer or Export Manager can send emails.</div>')+
+    '<div style="display:grid;gap:8px"><div class="mrow"><span class="muted" style="font-size:12px">From</span><span>'+esc(USERS[S.role])+' &lt;'+esc(userMail(S.role))+'&gt;</span></div>'+
+    row('To','em_to',m.to)+row('Cc','em_cc',m.cc)+row('Subject','em_sub',m.subject)+
+    '<div class="fld full"><label for="em_body">Message</label><textarea id="em_body" class="mailbody"'+(can?'':' readonly')+'>'+esc(m.body)+'</textarea></div>'+
+    '<div><span class="muted" style="font-size:12px;display:block;margin-bottom:6px">Attachments from the shipment file</span>'+(docPills(s,def.docs)||'<span class="muted">None</span>')+'</div>'+
+    '<span class="err" id="em_err" role="alert" style="color:var(--crit-ink);font-size:12.5px"></span></div>',
+    foot:'<button class="btn sec" data-close="1">Close</button>'+(can?'<button class="btn" data-send-email="'+shipId+':'+k+'">Send email</button>':'')});
+}
+function sendEmail(shipId,k){
+  var s=getShip(shipId),def=emDef(k),to=val('em_to'),sub=val('em_sub'),body=document.getElementById('em_body').value,err=document.getElementById('em_err');
+  if(!/^\S+@\S+\.\S+$/.test(to)){err.textContent='Enter a valid recipient address.';return;}
+  if(!sub){err.textContent='Add a subject.';return;}
+  var ph=/\[[^\]]+\]/.exec(body);
+  if(ph){err.textContent='Replace the bracketed text '+ph[0]+' before sending.';return;}
+  s.emails=s.emails||{};s.emails[k]={ts:nowIso(),by:USERS[S.role],to:to,subject:sub};
+  logShip(s,S.role,def.docs[0],'Email sent',def.n+' to '+to+'. Subject: '+sub);
+  var ad=APPROVE_DOC[k];if(ad){var dd=s.docs[ad],df=DEFS[ad],ni=stepIdx(df,'Pending External Response'),ci=stepIdx(df,dd.status);if(ci===ni-1&&!blocksFor(s,ad,ni).some(function(h){return h.mode==='hard';})){dd.status='Pending External Response';dd.changed=nowIso();logShip(s,S.role,ad,'Send to buyer',df.name+' is now waiting for the buyer (approval link emailed)');}}
+  save();V.modal=null;render();toast('Email sent to '+to+'.');
+}
+
+
+/* ===== Buyer approval (external, one document, email + code) ===== */
+var APPROVE_DOC={e3:5,e6:9};
+var BS={tok:'',step:1,code:'',sentAt:'',err:'',name:'',done:null};
+function chk4(str){var h=0;for(var i=0;i<str.length;i++)h=(h*31+str.charCodeAt(i))>>>0;return h.toString(36).slice(0,4);}
+function buyerToken(s,docId){var v=s.docs[docId].version;return 'buyer-'+s.id+'-'+docId+'-'+v+'-'+chk4(s.cert+'|'+docId+'|'+v);}
+function buyerLink(s,docId){return location.href.split('#')[0]+'#'+buyerToken(s,docId);}
+function parseTok(tok){
+  var m=/^buyer-(\d+)-(\d+)-(\d+)-([a-z0-9]+)$/.exec(tok||'');if(!m)return null;
+  var s=getShip(+m[1]);if(!s||!DEFS[+m[2]]||!s.docs[+m[2]])return null;
+  if(chk4(s.cert+'|'+m[2]+'|'+m[3])!==m[4])return null;
+  return {s:s,id:+m[2],ver:+m[3]};
+}
+function answered(s,id,ver){var a=(s.approvals||[]).filter(function(x){return x.docId===id&&x.version===ver;});return a.length?a[a.length-1]:null;}
+function buyerHead(){return '<div class="bdemo"><span>Demo: this is the page the buyer sees from the email link.</span><span style="display:flex;gap:8px">'+themeBtn()+'<button class="tbtn" style="background:var(--surface);color:var(--fg);border-color:var(--line)" id="bBack">&larr; Back to staff view</button></span></div>';}
+function buyerShell(inner){return buyerHead()+'<div class="lg-wrap" style="place-items:start center;padding-top:28px"><div class="lg-card bbox" style="max-width:780px"><div class="brand" style="color:var(--fg)"><svg width="30" height="30" viewBox="0 0 26 26" fill="none" aria-hidden="true"><circle cx="13" cy="13" r="12" stroke="#BE8F3E" stroke-width="1.4"/><path d="M13 4C9 8 9 12 13 22 17 12 17 8 13 4Z" fill="#BE8F3E" opacity=".85"/></svg><div><b>Sheba Beans</b><small style="color:var(--muted)">Secure document approval</small></div></div>'+inner+'</div></div>';}
+function buyerPage(){
+  var p=parseTok(BS.tok);
+  if(!p)return buyerShell('<h1>Link not valid</h1><p class="muted" style="margin:0">This approval link is not valid. Please ask Sheba Beans to send a new one. (In this demo the data lives in the browser where the shipment was created.)</p>');
+  var s=p.s,id=p.id,def=DEFS[id],d=s.docs[id],an=answered(s,id,p.ver);
+  if(BS.done||an){var a=BS.done||an;return buyerShell('<h1>'+(a.decision==='approved'?'Thank you. Approval recorded':'Corrections sent')+'</h1><p class="muted" style="margin:0">'+(a.decision==='approved'?'You approved ':'You asked for corrections to ')+'<b>'+esc(def.name)+'</b> for shipment '+esc(s.cert)+'. Sheba Beans has been notified.</p><div class="inbox">Recorded '+esc(fmtDate(a.ts))+' &middot; '+esc(a.by)+' &middot; '+esc(a.email)+(a.comment?'<br>Comment: '+esc(a.comment):'')+'</div>');}
+  if(d.version!==p.ver||d.status!=='Pending External Response')return buyerShell('<h1>This link is no longer active</h1><p class="muted" style="margin:0">The document was revised or is not waiting for your approval. Please use the newest email from Sheba Beans.</p>');
+  var em=buyerMail(s);
+  if(BS.step===1)return buyerShell('<h1>Review '+esc(def.name)+'</h1><p class="muted" style="margin:0">Shipment '+esc(s.cert)+' for <b>'+esc(s.buyer)+'</b>. To protect this document we will email a 6-digit code to <b>'+esc(em)+'</b>.</p><button class="btn" id="bSend">Email me a code</button>');
+  if(BS.step===2)return buyerShell('<h1>Enter your code</h1><p class="muted" style="margin:0">We emailed a code to <b>'+esc(em)+'</b>. It is valid for 10 minutes.</p><div class="inbox"><span class="muted">Demo inbox, delivered '+esc(BS.sentAt)+'</span><br>Your Sheba Beans approval code is<b class="code">'+BS.code+'</b></div><div class="fld"><label for="b_code">6-digit code</label><input id="b_code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="000000"><span class="err" id="b_err" role="alert">'+esc(BS.err)+'</span></div><button class="btn" id="bVerify">Verify</button><button class="link-btn" style="color:var(--muted);justify-self:start" id="bResend">Send a new code</button>');
+  var doc=id===5?'<div class="paper"><div class="lh"><div><b>Sheba Beans</b><br>Addis Ababa, Ethiopia &middot; Portland, USA</div><div style="text-align:right">Ref '+esc(s.cert)+'<br>Version '+d.version+'</div></div>'+paperHtml(s,def,d)+'</div>':
+    '<div class="paper"><div class="lh"><div><b>Sheba Beans</b><br>Addis Ababa, Ethiopia &middot; Portland, USA</div><div style="text-align:right">Ref '+esc(s.cert)+'</div></div><h3>SAMPLE APPROVAL</h3><table>'+lnk('Shipment',esc(s.cert)+' / '+esc(s.contractNo))+lnk('Coffee',esc(s.coffee)+', '+esc(s.grade))+lnk('Origin / supplier',esc(s.supplier||'')+', Ethiopia')+lnk('Quantity',s.mt+' MT, '+s.bags+' bags')+lnk('Sample','Pre-shipment sample dispatched to you')+'</table><p style="margin:12px 0 0;font-size:12.5px">Please confirm whether the sample matches the contract so we can proceed to loading.</p></div>';
+  return buyerShell('<h1>'+esc(def.name)+'</h1><p class="muted" style="margin:0">Review the document below, then approve it or ask for corrections.</p>'+doc+
+    '<div class="fld"><label for="b_name">Your name</label><input id="b_name" value="'+esc(BS.name)+'" placeholder="Full name"></div><div class="fld"><label for="b_comment">Comment (needed if you ask for corrections)</label><textarea id="b_comment" rows="3"></textarea></div><span class="err" id="b_err" role="alert"></span><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="bApprove">Approve</button><button class="btn sec" id="bCorrect">Request corrections</button></div>');
+}
+function buyerDecide(decision){
+  var p=parseTok(BS.tok),err=document.getElementById('b_err'),name=val('b_name'),cm=val('b_comment');
+  if(!p)return;if(!name){err.textContent='Enter your name.';return;}
+  if(decision==='corrections'&&!cm){err.textContent='Describe the corrections you need.';return;}
+  var s=p.s,id=p.id,d=s.docs[id],def=DEFS[id];BS.name=name;
+  s.approvals=s.approvals||[];var rec={docId:id,version:p.ver,by:name,email:buyerMail(s),decision:decision==='approve'?'approved':'corrections',comment:cm,ts:nowIso()};
+  s.approvals.push(rec);
+  if(decision==='approve'){d.status='Completed';d.changed=nowIso();logShip(s,name+' (buyer)',id,'Buyer approval',def.name+' approved by '+name+' ('+rec.email+') through the email link, version '+p.ver);}
+  else{d.status='Revision Required';d.remarks=cm;d.changed=nowIso();logShip(s,name+' (buyer)',id,'Buyer requested corrections',def.name+': '+cm);}
+  save();BS.done=rec;render();
+}
+
+/* ---------- events ---------- */
+function refocus(id){var e=document.getElementById(id);if(e){e.focus();try{e.setSelectionRange(e.value.length,e.value.length);}catch(x){}}}
+document.addEventListener('click',function(ev){
+  var t=ev.target.closest('[data-go],[data-ship],[data-tab],[data-stage],[data-act],[data-preview],[data-contract-reg],[data-close],[data-reg-go],[data-soft-go],[data-file-go],[data-reason-go],[data-email],[data-send-email],[data-print],[data-buyer-link],#bBack,#bSend,#bVerify,#bResend,#bApprove,#bCorrect,#themeBtn,#signOut,#sendCode,#verifyCode,#resendCode,#backLogin,#newContract,#saveContract,#resetDemo,#mbg');
+  if(!t)return;
+  var ds=t.dataset;
+  if(t.id==='mbg'){if(ev.target===t)closeModal();return;}
+  if(t.id==='themeBtn'){toggleTheme();return;}
+  if(t.id==='signOut'){lsSet(AUTH_KEY,'0');LG={step:1,role:S.role,code:'',err:'',sentAt:''};V.modal=null;render();return;}
+  if(t.id==='sendCode'){var sel=document.getElementById('lg_user');LG.role=sel?sel.value:LG.role;newCode();LG.step=2;render();refocus('lg_code');return;}
+  if(t.id==='resendCode'){newCode();render();toast('A new code was sent.');return;}
+  if(t.id==='backLogin'){LG.step=1;LG.err='';render();return;}
+  if(t.id==='verifyCode'){if(val('lg_code')===LG.code){S.role=LG.role;save();lsSet(AUTH_KEY,'1');V.page='dashboard';render();toast('Signed in as '+USERS[S.role]+'.');}else{LG.err='That code is not correct. Check the demo inbox above.';render();refocus('lg_code');}return;}
+  if(ds.buyerLink){location.hash=ds.buyerLink;return;}
+  if(t.id==='bBack'){try{history.replaceState(null,'',location.href.split('#')[0]);}catch(e){}V.buyer=null;BS={tok:'',step:1,code:'',sentAt:'',err:'',name:'',done:null};render();window.scrollTo(0,0);return;}
+  if(t.id==='bSend'||t.id==='bResend'){BS.code=String(Math.floor(100000+Math.random()*900000));BS.sentAt=new Date().toTimeString().slice(0,5);BS.err='';BS.step=2;render();refocus('b_code');return;}
+  if(t.id==='bVerify'){if(val('b_code')===BS.code){BS.step=3;BS.err='';render();}else{BS.err='That code is not correct. Check the demo inbox above.';render();refocus('b_code');}return;}
+  if(t.id==='bApprove'){buyerDecide('approve');return;}
+  if(t.id==='bCorrect'){buyerDecide('corrections');return;}
+  if(ds.print){try{window.print();}catch(e){toast('Printing is not available here. Open the demo in its own browser tab.');}return;}
+  if(ds.email){emailModal(V.shipId,ds.email);return;}
+  if(ds.sendEmail){var ep=ds.sendEmail.split(':');sendEmail(+ep[0],ep[1]);return;}
+  if(ds.close){closeModal();return;}
+  if(ds.go){go(ds.go);return;}
+  if(ds.ship){go('ship',+ds.ship);return;}
+  if(ds.tab){V.tab=ds.tab;render();return;}
+  if(ds.stage){V.stage=+ds.stage;render();return;}
+  if(t.id==='newContract'){contractModal();return;}
+  if(t.id==='saveContract'){saveContract();return;}
+  if(t.id==='resetDemo'){freshState();V.modal=null;V.page='dashboard';render();toast('Demo data reset.');return;}
+  if(ds.contractReg){registerModal(+ds.contractReg);return;}
+  if(ds.regGo){
+    var f=val('r_file');if(!f){document.getElementById('r_err').textContent='Enter a file name.';return;}
+    var c=S.contracts.filter(function(x){return x.id===+ds.regGo;})[0],sh=createShipment(c,f,S.role);save();toast('Shipment file '+sh.cert+' opened.');go('ship',sh.id);return;
+  }
+  if(ds.preview){previewModal(V.shipId,+ds.preview);return;}
+  if(ds.act){
+    var id=+ds.act,k=ds.kind,sh2=getShip(V.shipId);
+    if(k==='reject'||k==='revreq'){reasonModal(sh2.id,id,k);return;}
+    var nx=nextStep(sh2,id);
+    if(k==='next'&&nx&&nx.needsFile){var bl=blocksFor(sh2,id,nx.idx);if(!bl.length){fileModal(sh2.id,id,nx.label);return;}}
+    runAct(sh2.id,id,k);return;
+  }
+  if(ds.softGo){var p=ds.softGo.split(':');runAct(+p[0],+p[1],'next',{override:true,reason:val('s_reason')||'no reason given'});return;}
+  if(ds.fileGo){var q=ds.fileGo.split(':'),fn=val('u_file');if(!fn)return;runAct(+q[0],+q[1],'next',{file:fn,override:false});return;}
+  if(ds.reasonGo){
+    var z=ds.reasonGo.split(':'),why=val('x_reason');
+    if(!why){document.getElementById('x_err').textContent='Add a reason so the next person knows what to fix.';return;}
+    runAct(+z[0],+z[1],z[2],{reason:why});return;
+  }
+});
+document.addEventListener('change',function(ev){
+  var t=ev.target;
+  if(t.id==='lg_user'){LG.role=t.value;return;}
+  if(t.id==='roleSel'){S.role=t.value;save();render();toast('Now viewing as '+S.role+'.');return;}
+  if(t.id==='dPay'){V.fPay=t.value;render();return;}
+  if(t.id==='dStat'){V.fStat=t.value;render();return;}
+  if(t.id==='docCat'){V.dcat=t.value;render();return;}
+  if(t.id==='docSrc'){V.dstat=t.value;render();return;}
+  if(t.dataset&&t.dataset.rule){S.ruleModes[t.dataset.rule]=t.value;save();toast('Rule '+t.dataset.rule+' is now a '+(t.value==='hard'?'hard block':'warning')+'.');return;}
+  if(t.dataset&&t.dataset.flag){
+    var s=getShip(V.shipId);
+    if(S.role!=='Documentation Officer'&&S.role!=='Export Manager'){t.checked=!t.checked;toast('Only Documentation Officer or Export Manager can change shipment conditions.');return;}
+    s[t.dataset.flag]=t.checked;applyCondition(s,FLAG_NAMES[t.dataset.flag]+' set to '+(t.checked?'yes':'no'));return;
+  }
+  if(t.id==='payChange'){
+    var s2=getShip(V.shipId);
+    if(S.role!=='Documentation Officer'&&S.role!=='Export Manager'){t.value=s2.pay;toast('Only Documentation Officer or Export Manager can change the payment method.');return;}
+    var old=s2.pay;s2.pay=t.value;applyCondition(s2,'Payment method changed from '+old+' to '+s2.pay);return;
+  }
+});
+document.addEventListener('input',function(ev){
+  var t=ev.target;
+  if(t.id==='dq'){V.q=t.value;render();refocus('dq');}
+  else if(t.id==='docQ'){V.dq=t.value;render();refocus('docQ');}
+});
+document.addEventListener('keydown',function(ev){
+  if(ev.key==='Enter'&&ev.target.id==='b_code'){document.getElementById('bVerify').click();return;}
+  if(ev.key==='Enter'&&ev.target.id==='lg_code'){document.getElementById('verifyCode').click();return;}
+  if(ev.key==='Escape'&&V.modal){closeModal();return;}
+  if((ev.key==='Enter'||ev.key===' ')&&ev.target.matches&&ev.target.matches('tr.click')){ev.preventDefault();go('ship',+ev.target.dataset.ship);}
+});
+window.addEventListener('hashchange',function(){pageFromHash();render();});
+window.addEventListener('storage',function(e){if(e.key===KEY&&e.newValue){try{var n=JSON.parse(e.newValue);if(n&&n.ships){S=n;render();}}catch(x){}}});
+
+/* nav: lots arrives in slice 4 */
+loadState();pageFromHash();render();
+
+
+</script>
+
+</body>
+</html>
